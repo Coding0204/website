@@ -47,7 +47,8 @@
           Play, Info, Plus, Search, Bell, User, Settings, LogOut, ChevronRight, 
           Star, TrendingUp, Clock, Calendar, Tv, MonitorPlay, MessageSquare, 
           Share2, Volume2, Maximize, SkipForward, CreditCard, Shield, Globe, 
-          Palette, History, BookOpen, Newspaper, Flame, Check, X, Trash2, Menu 
+          Palette, History, BookOpen, Newspaper, Flame, Check, X, Trash2, Menu,
+          Edit2, Save, Camera, RefreshCw, AlertCircle
         } from 'https://esm.sh/lucide-react@0.300.0';
 
         // --- DATA CONSTANTS ---
@@ -144,13 +145,49 @@
         const AniStream = () => {
             const [scrolled, setScrolled] = useState(false);
             const [activeTab, setActiveTab] = useState('home');
+            const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+            const [searchQuery, setSearchQuery] = useState('');
             
             // Modal State
             const [showAddModal, setShowAddModal] = useState(false);
             const [addModalTarget, setAddModalTarget] = useState('watchlist'); 
 
             // Watchlist State Management
-            const [myWatchlist, setMyWatchlist] = useState([]);
+            const [myWatchlist, setMyWatchlist] = useState(() => {
+                const saved = localStorage.getItem('aniStream_watchlist');
+                return saved ? JSON.parse(saved) : [];
+            });
+
+            // Watch History State Management
+            const [watchHistory, setWatchHistory] = useState(() => {
+                const saved = localStorage.getItem('aniStream_history');
+                if (saved) return JSON.parse(saved);
+                return [
+                    { title: "Cyber Samurai 2099", ep: 12, time: "12m left", percent: 65, date: "Just now", image: trendingAnime[0].image },
+                    { title: "Spy x Family", ep: 24, time: "Completed", percent: 100, date: "2 hours ago", image: trendingAnime[2].image },
+                    { title: "Chainsaw Man", ep: 8, time: "3m left", percent: 85, date: "Yesterday", image: trendingAnime[3].image },
+                    { title: "Kaiju No. 8", ep: 5, time: "18m left", percent: 15, date: "3 days ago", image: simulcastAnime[0].image },
+                    { title: "One Piece", ep: 1092, time: "Completed", percent: 100, date: "Last Week", image: trendingAnime[4].image },
+                ];
+            });
+
+            // User Profile State Management
+            const [user, setUser] = useState(() => {
+                const saved = localStorage.getItem('aniStream_user');
+                if (saved) return JSON.parse(saved);
+                return {
+                    name: "Kaito Nakamura",
+                    handle: "@kai_otaku",
+                    avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=Felix&backgroundColor=b6e3f4",
+                    plan: "Premium Ronin",
+                    level: 42
+                };
+            });
+
+            // Effects to Save Data
+            useEffect(() => { localStorage.setItem('aniStream_watchlist', JSON.stringify(myWatchlist)); }, [myWatchlist]);
+            useEffect(() => { localStorage.setItem('aniStream_history', JSON.stringify(watchHistory)); }, [watchHistory]);
+            useEffect(() => { localStorage.setItem('aniStream_user', JSON.stringify(user)); }, [user]);
 
             const toggleWatchlist = (anime) => {
                 const exists = myWatchlist.find(item => item.title === anime.title);
@@ -161,24 +198,13 @@
                 }
             };
 
-            const isInWatchlist = (anime) => {
-                return myWatchlist.some(item => item.title === anime.title);
+            const isInWatchlist = (anime) => myWatchlist.some(item => item.title === anime.title);
+            const clearHistory = () => setWatchHistory([]);
+
+            const updateUser = (updatedData) => {
+                setUser(prev => ({ ...prev, ...updatedData }));
             };
 
-            // Watch History State Management
-            const [watchHistory, setWatchHistory] = useState([
-                { title: "Cyber Samurai 2099", ep: 12, time: "12m left", percent: 65, date: "Just now", image: trendingAnime[0].image },
-                { title: "Spy x Family", ep: 24, time: "Completed", percent: 100, date: "2 hours ago", image: trendingAnime[2].image },
-                { title: "Chainsaw Man", ep: 8, time: "3m left", percent: 85, date: "Yesterday", image: trendingAnime[3].image },
-                { title: "Kaiju No. 8", ep: 5, time: "18m left", percent: 15, date: "3 days ago", image: simulcastAnime[0].image },
-                { title: "One Piece", ep: 1092, time: "Completed", percent: 100, date: "Last Week", image: trendingAnime[4].image },
-            ]);
-
-            const clearHistory = () => {
-                setWatchHistory([]);
-            };
-
-            // Add Anime Functionality
             const handleOpenAddModal = (target) => {
                 setAddModalTarget(target);
                 setShowAddModal(true);
@@ -196,11 +222,29 @@
                 };
 
                 if (addModalTarget === 'watchlist') {
-                    setMyWatchlist([newAnime, ...myWatchlist]);
+                    if (!myWatchlist.some(i => i.title === newAnime.title)) {
+                        setMyWatchlist([newAnime, ...myWatchlist]);
+                    }
                 } else {
                     setWatchHistory([newAnime, ...watchHistory]);
                 }
                 setShowAddModal(false);
+            };
+
+            const handleSearchInput = (e) => {
+                const query = e.target.value;
+                setSearchQuery(query);
+                if (query.trim() !== '') {
+                    setActiveTab('search');
+                } else if (activeTab === 'search') {
+                    setActiveTab('home'); // Optional: go back to home if search is cleared
+                }
+            };
+
+            const handleNavClick = (tab) => {
+                setActiveTab(tab);
+                setMobileMenuOpen(false);
+                setSearchQuery(''); // Clear search on navigation
             };
 
             useEffect(() => {
@@ -209,26 +253,19 @@
                 return () => window.removeEventListener('scroll', handleScroll);
             }, []);
 
-            const user = {
-                name: "Kaito Nakamura",
-                handle: "@kai_otaku",
-                avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=Felix&backgroundColor=b6e3f4",
-                plan: "Premium Ronin",
-                level: 42
-            };
-
             const renderContent = () => {
                 switch (activeTab) {
-                    case 'home': return <HomeView onNavigate={setActiveTab} onToggle={toggleWatchlist} checkList={isInWatchlist} />;
-                    case 'browse': return <BrowseView onNavigate={setActiveTab} onToggle={toggleWatchlist} checkList={isInWatchlist} />;
+                    case 'home': return <HomeView onNavigate={handleNavClick} onToggle={toggleWatchlist} checkList={isInWatchlist} />;
+                    case 'browse': return <BrowseView onNavigate={handleNavClick} onToggle={toggleWatchlist} checkList={isInWatchlist} />;
+                    case 'search': return <SearchView query={searchQuery} onNavigate={handleNavClick} onToggle={toggleWatchlist} checkList={isInWatchlist} />;
                     case 'manga': return <MangaView />;
                     case 'news': return <NewsView />;
-                    case 'profile': return <ProfileView user={user} onNavigate={setActiveTab} />;
+                    case 'profile': return <ProfileView user={user} onUpdate={updateUser} onNavigate={handleNavClick} />;
                     case 'watch': return <WatchView />;
-                    case 'watchlist': return <WatchlistView onNavigate={setActiveTab} watchlist={myWatchlist} onToggle={toggleWatchlist} onAdd={() => handleOpenAddModal('watchlist')} />;
-                    case 'watched': return <WatchedView onNavigate={setActiveTab} history={watchHistory} onClear={clearHistory} onAdd={() => handleOpenAddModal('history')} />;
-                    case 'simulcast': return <SimulcastView onNavigate={setActiveTab} />;
-                    default: return <HomeView onNavigate={setActiveTab} onToggle={toggleWatchlist} checkList={isInWatchlist} />;
+                    case 'watchlist': return <WatchlistView onNavigate={handleNavClick} watchlist={myWatchlist} onToggle={toggleWatchlist} onAdd={() => handleOpenAddModal('watchlist')} />;
+                    case 'watched': return <WatchedView onNavigate={handleNavClick} history={watchHistory} onClear={clearHistory} onAdd={() => handleOpenAddModal('history')} />;
+                    case 'simulcast': return <SimulcastView onNavigate={handleNavClick} />;
+                    default: return <HomeView onNavigate={handleNavClick} onToggle={toggleWatchlist} checkList={isInWatchlist} />;
                 }
             };
 
@@ -238,38 +275,66 @@
                     {/* Navigation Bar */}
                     <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-[#0a0a0f]/95 backdrop-blur-md border-b border-white/5 py-3' : 'bg-gradient-to-b from-black/80 to-transparent py-5'}`}>
                         <div className="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between">
-                            <div className="flex items-center gap-8">
-                                <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('home')}>
+                            <div className="flex items-center gap-4 md:gap-8">
+                                <button className="md:hidden text-slate-300 hover:text-white" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+                                    {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                                </button>
+
+                                <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleNavClick('home')}>
                                     <div className="w-8 h-8 rounded bg-gradient-to-br from-fuchsia-600 to-cyan-500 flex items-center justify-center shadow-[0_0_15px_rgba(217,70,239,0.5)]">
                                         <Play size={14} className="fill-white text-white ml-0.5" />
                                     </div>
-                                    <span className="text-xl font-black tracking-tight text-white uppercase italic">Ani<span className="text-cyan-400">Stream</span></span>
+                                    <span className="text-lg md:text-xl font-black tracking-tight text-white uppercase italic">Ani<span className="text-cyan-400">Stream</span></span>
                                 </div>
                                 
                                 <div className="hidden md:flex items-center gap-6 text-sm font-bold text-slate-300">
-                                    <NavLink label="Home" active={activeTab === 'home'} onClick={() => setActiveTab('home')} />
-                                    <NavLink label="Browse" active={activeTab === 'browse'} onClick={() => setActiveTab('browse')} />
-                                    <NavLink label="Simulcast" active={activeTab === 'simulcast'} onClick={() => setActiveTab('simulcast')} />
-                                    <NavLink label="Manga" active={activeTab === 'manga'} onClick={() => setActiveTab('manga')} />
-                                    <NavLink label="News" active={activeTab === 'news'} onClick={() => setActiveTab('news')} />
+                                    <NavLink label="Home" active={activeTab === 'home'} onClick={() => handleNavClick('home')} />
+                                    <NavLink label="Browse" active={activeTab === 'browse'} onClick={() => handleNavClick('browse')} />
+                                    <NavLink label="Simulcast" active={activeTab === 'simulcast'} onClick={() => handleNavClick('simulcast')} />
+                                    <NavLink label="Manga" active={activeTab === 'manga'} onClick={() => handleNavClick('manga')} />
+                                    <NavLink label="News" active={activeTab === 'news'} onClick={() => handleNavClick('news')} />
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-5">
+                            <div className="flex items-center gap-3 md:gap-5">
                                 <div className="hidden md:flex items-center bg-black/20 border border-white/10 rounded-full px-3 py-1.5 focus-within:border-fuchsia-500/50 focus-within:bg-black/40 transition-all group">
                                     <Search size={16} className="text-slate-400 group-focus-within:text-fuchsia-400" />
-                                    <input type="text" placeholder="Search anime..." className="bg-transparent border-none focus:ring-0 text-sm text-white w-32 group-focus-within:w-48 transition-all placeholder:text-slate-600" />
+                                    <input 
+                                        type="text" 
+                                        placeholder="Search anime..." 
+                                        className="bg-transparent border-none focus:ring-0 text-sm text-white w-24 lg:w-32 group-focus-within:w-48 transition-all placeholder:text-slate-600" 
+                                        value={searchQuery}
+                                        onChange={handleSearchInput}
+                                    />
+                                    {searchQuery && <button onClick={() => { setSearchQuery(''); if(activeTab === 'search') handleNavClick('home'); }}><X size={14} className="text-slate-500 hover:text-white" /></button>}
                                 </div>
                                 <button className="relative text-slate-300 hover:text-white transition-colors">
                                     <Bell size={20} />
                                     <span className="absolute -top-1 -right-1 w-2 h-2 bg-fuchsia-500 rounded-full animate-pulse"></span>
                                 </button>
-                                <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setActiveTab('profile')}>
+                                <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => handleNavClick('profile')}>
                                     <img src={user.avatar} alt="User" className={`w-8 h-8 rounded-lg ring-2 transition-all ${activeTab === 'profile' ? 'ring-fuchsia-500' : 'ring-transparent'}`} />
                                 </div>
                             </div>
                         </div>
                     </nav>
+
+                    {/* Mobile Menu Overlay */}
+                    {mobileMenuOpen && (
+                        <div className="fixed inset-0 z-40 bg-black/95 pt-24 px-6 md:hidden animate-in">
+                            <div className="flex flex-col gap-6 text-xl font-bold text-slate-300">
+                                <span onClick={() => handleNavClick('home')} className={activeTab === 'home' ? 'text-fuchsia-400' : ''}>Home</span>
+                                <span onClick={() => handleNavClick('browse')} className={activeTab === 'browse' ? 'text-fuchsia-400' : ''}>Browse</span>
+                                <span onClick={() => handleNavClick('simulcast')} className={activeTab === 'simulcast' ? 'text-fuchsia-400' : ''}>Simulcast</span>
+                                <span onClick={() => handleNavClick('manga')} className={activeTab === 'manga' ? 'text-fuchsia-400' : ''}>Manga Library</span>
+                                <span onClick={() => handleNavClick('news')} className={activeTab === 'news' ? 'text-fuchsia-400' : ''}>Newsroom</span>
+                                <hr className="border-white/10 my-2" />
+                                <span onClick={() => handleNavClick('watchlist')} className={activeTab === 'watchlist' ? 'text-fuchsia-400' : ''}>My Watchlist</span>
+                                <span onClick={() => handleNavClick('watched')} className={activeTab === 'watched' ? 'text-fuchsia-400' : ''}>Watch History</span>
+                                <span onClick={() => handleNavClick('profile')} className={activeTab === 'profile' ? 'text-fuchsia-400' : ''}>Profile Settings</span>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Main Content */}
                     <main className="pt-0 min-h-screen">
@@ -297,15 +362,15 @@
                             <div>
                                 <h4 className="font-bold text-white mb-4">Navigation</h4>
                                 <ul className="space-y-2 text-sm text-slate-400">
-                                    <li className="hover:text-fuchsia-400 cursor-pointer" onClick={() => setActiveTab('browse')}>Browse Popular</li>
-                                    <li className="hover:text-fuchsia-400 cursor-pointer" onClick={() => setActiveTab('watched')}>Watch History</li>
-                                    <li className="hover:text-fuchsia-400 cursor-pointer" onClick={() => setActiveTab('news')}>Newsroom</li>
+                                    <li className="hover:text-fuchsia-400 cursor-pointer" onClick={() => handleNavClick('browse')}>Browse Popular</li>
+                                    <li className="hover:text-fuchsia-400 cursor-pointer" onClick={() => handleNavClick('watched')}>Watch History</li>
+                                    <li className="hover:text-fuchsia-400 cursor-pointer" onClick={() => handleNavClick('news')}>Newsroom</li>
                                 </ul>
                             </div>
                             <div>
                                 <h4 className="font-bold text-white mb-4">Account</h4>
                                 <ul className="space-y-2 text-sm text-slate-400">
-                                    <li className="hover:text-fuchsia-400 cursor-pointer" onClick={() => setActiveTab('watchlist')}>My Watchlist</li>
+                                    <li className="hover:text-fuchsia-400 cursor-pointer" onClick={() => handleNavClick('watchlist')}>My Watchlist</li>
                                     <li className="hover:text-fuchsia-400 cursor-pointer">Redeem Code</li>
                                     <li className="hover:text-fuchsia-400 cursor-pointer">Gift Cards</li>
                                 </ul>
@@ -328,6 +393,38 @@
         };
 
         // --- SUB-COMPONENTS ---
+
+        const SearchView = ({ query, onNavigate, onToggle, checkList }) => {
+            const allAnime = [...trendingAnime, ...simulcastAnime, ...recommendedAnime];
+            const results = allAnime.filter(item => item.title.toLowerCase().includes(query.toLowerCase()));
+
+            return (
+                <div className="pt-24 px-6 max-w-7xl mx-auto animate-in">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+                        <div>
+                            <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+                                <Search className="text-cyan-400" /> Search Results
+                            </h1>
+                            <p className="text-slate-400 mt-2">Found {results.length} results for "{query}"</p>
+                        </div>
+                    </div>
+
+                    {results.length > 0 ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                            {results.map((anime, idx) => (
+                                <AnimeCard key={idx} item={anime} title={anime.title} genre={anime.genre} image={anime.image} rating={anime.rating} onNavigate={onNavigate} onToggle={onToggle} isAdded={checkList(anime)} />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center py-32 text-center border border-dashed border-white/10 rounded-2xl bg-white/5">
+                            <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mb-4"><AlertCircle size={32} className="text-slate-500" /></div>
+                            <h3 className="text-xl font-bold text-white mb-2">No matches found</h3>
+                            <p className="text-slate-400 mb-6 max-w-md">Try searching for something else like "Demon Slayer" or "One Piece".</p>
+                        </div>
+                    )}
+                </div>
+            );
+        };
 
         const HomeView = ({ onNavigate, onToggle, checkList }) => {
             const heroAnime = { title: "Cyber Samurai 2099", genre: "Cyberpunk", image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=2574&auto=format&fit=crop", rating: "5.0" };
@@ -352,15 +449,15 @@
                                 </div>
                             </div>
                             
-                            <h1 className="text-5xl md:text-7xl font-black text-white leading-tight italic uppercase tracking-tighter drop-shadow-2xl animate-in" style={{animationDelay: '0.2s'}}>
+                            <h1 className="text-4xl md:text-7xl font-black text-white leading-tight italic uppercase tracking-tighter drop-shadow-2xl animate-in" style={{animationDelay: '0.2s'}}>
                                 Cyber Samurai <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">2099</span>
                             </h1>
                             
-                            <p className="text-lg text-slate-300 line-clamp-3 md:line-clamp-2 max-w-2xl animate-in" style={{animationDelay: '0.3s'}}>
+                            <p className="text-base md:text-lg text-slate-300 line-clamp-3 md:line-clamp-2 max-w-2xl animate-in" style={{animationDelay: '0.3s'}}>
                                 In a neon-drenched Tokyo where honor is obsolete, one ronin must merge with the machine to reclaim his family's legacy.
                             </p>
                             
-                            <div className="flex items-center gap-4 pt-4 animate-in" style={{animationDelay: '0.4s'}}>
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-4 animate-in" style={{animationDelay: '0.4s'}}>
                                 <button className="px-8 py-3.5 bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-bold uppercase tracking-wide rounded flex items-center gap-2 transition-all hover:scale-105 hover:shadow-[0_0_25px_rgba(217,70,239,0.4)]" onClick={() => onNavigate('watch')}>
                                     <Play size={20} className="fill-white" /> Watch S1 E1
                                 </button>
@@ -391,14 +488,14 @@
                             <Play size={32} className="fill-white text-white ml-1" />
                         </button>
                     </div>
-                    <div className="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute bottom-0 left-0 w-full p-4 md:p-6 bg-gradient-to-t from-black to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <div className="h-1 w-full bg-white/20 rounded mb-4 cursor-pointer hover:h-1.5 transition-all">
                             <div className="h-full w-1/3 bg-fuchsia-500 rounded relative">
                                 <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow"></div>
                             </div>
                         </div>
                         <div className="flex justify-between items-center text-white">
-                            <div className="flex items-center gap-4"><Play size={20} /><SkipForward size={20} /><Volume2 size={20} /><span className="text-sm font-mono">08:42 / 24:00</span></div>
+                            <div className="flex items-center gap-4"><Play size={20} /><SkipForward size={20} /><Volume2 size={20} /><span className="text-sm font-mono hidden sm:inline">08:42 / 24:00</span></div>
                             <div className="flex items-center gap-4"><Settings size={20} /><Maximize size={20} /></div>
                         </div>
                     </div>
@@ -407,14 +504,14 @@
                 <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-10">
                     <div className="lg:col-span-2 space-y-6">
                         <div>
-                            <h1 className="text-3xl font-bold text-white mb-2">Ep 12 - The Final Connection</h1>
-                            <h2 className="text-xl text-cyan-400 mb-4">Cyber Samurai 2099</h2>
+                            <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Ep 12 - The Final Connection</h1>
+                            <h2 className="text-lg md:text-xl text-cyan-400 mb-4">Cyber Samurai 2099</h2>
                             <div className="flex gap-3 text-sm text-slate-400">
                                 <span className="px-2 py-0.5 bg-white/10 rounded text-white">TV-14</span><span>HD 1080p</span><span>Released: Nov 18, 2025</span>
                             </div>
                         </div>
                         <p className="text-slate-300 leading-relaxed">Kenji confronts the AI overlord in the central mainframe, only to discover a shocking truth about his own origin.</p>
-                        <div className="flex items-center gap-6 border-t border-white/10 pt-6">
+                        <div className="flex items-center gap-6 border-t border-white/10 pt-6 flex-wrap">
                             <button className="flex items-center gap-2 text-fuchsia-400 hover:text-fuchsia-300 font-bold uppercase text-sm"><Plus size={18}/> Add to List</button>
                             <button className="flex items-center gap-2 text-slate-400 hover:text-white font-bold uppercase text-sm"><Share2 size={18}/> Share</button>
                         </div>
@@ -459,7 +556,7 @@
                 <div className="flex items-center justify-between mb-8">
                     <h1 className="text-3xl font-bold text-white flex items-center gap-3"><History className="text-cyan-400" /> Watch History</h1>
                     <div className="flex gap-3">
-                        <button onClick={onAdd} className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm font-bold transition-colors"><Plus size={16} /> Add Anime</button>
+                        <button onClick={onAdd} className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm font-bold transition-colors"><Plus size={16} /> <span className="hidden sm:inline">Add Anime</span></button>
                         <button onClick={onClear} className="flex items-center gap-2 px-4 py-2 border border-red-900/50 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-lg text-sm font-bold uppercase transition-colors"><Trash2 size={16} /> Clear</button>
                     </div>
                 </div>
@@ -467,15 +564,15 @@
                     <div className="space-y-4">
                         {history.map((item, idx) => (
                             <div key={idx} className="flex gap-4 p-4 rounded-xl bg-[#15151a] border border-white/5 hover:border-fuchsia-500/30 group transition-all cursor-pointer" onClick={() => onNavigate('watch')}>
-                                <div className="relative w-40 h-24 bg-slate-800 rounded-lg flex-shrink-0 overflow-hidden">
+                                <div className="relative w-28 sm:w-40 h-16 sm:h-24 bg-slate-800 rounded-lg flex-shrink-0 overflow-hidden">
                                     <img src={item.image} alt={item.title} className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity" />
                                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><Play size={24} className="fill-white text-white" /></div>
                                     <div className="absolute bottom-0 left-0 w-full h-1 bg-slate-800"><div className="h-full bg-fuchsia-600" style={{ width: `${item.percent}%` }}></div></div>
                                 </div>
                                 <div className="flex flex-col justify-center flex-1">
-                                    <h3 className="text-lg font-bold text-white group-hover:text-cyan-400 transition-colors">{item.title}</h3>
-                                    <p className="text-slate-400 text-sm">Episode {item.ep}</p>
-                                    <div className="flex items-center gap-3 mt-2"><span className={`text-xs font-bold px-2 py-0.5 rounded ${item.percent === 100 ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}`}>{item.time}</span><span className="text-xs text-slate-600">{item.date}</span></div>
+                                    <h3 className="text-base sm:text-lg font-bold text-white group-hover:text-cyan-400 transition-colors line-clamp-1">{item.title}</h3>
+                                    <p className="text-slate-400 text-xs sm:text-sm">Episode {item.ep}</p>
+                                    <div className="flex items-center gap-3 mt-1 sm:mt-2"><span className={`text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded ${item.percent === 100 ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}`}>{item.time}</span><span className="text-[10px] sm:text-xs text-slate-600">{item.date}</span></div>
                                 </div>
                             </div>
                         ))}
@@ -494,7 +591,7 @@
             <div className="pt-24 px-6 max-w-7xl mx-auto animate-in">
                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
                     <h1 className="text-3xl font-bold text-white">Browse Anime</h1>
-                    <div className="flex gap-3 overflow-x-auto pb-2">
+                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
                         <FilterChip label="Action" active /><FilterChip label="Romance" /><FilterChip label="Isekai" /><FilterChip label="Sci-Fi" /><FilterChip label="Fantasy" />
                     </div>
                 </div>
@@ -569,17 +666,92 @@
             </div>
         );
 
-        const ProfileView = ({ user, onNavigate }) => (
+        const ProfileView = ({ user, onNavigate, onUpdate }) => {
+            const [isEditing, setIsEditing] = useState(false);
+            const [formData, setFormData] = useState({ ...user });
+
+            // Sync form data with user prop if user changes externally (e.g. storage sync)
+            useEffect(() => {
+                setFormData({ ...user });
+            }, [user]);
+
+            const handleSave = () => {
+                onUpdate(formData);
+                setIsEditing(false);
+            };
+
+            const handleCancel = () => {
+                setFormData({ ...user });
+                setIsEditing(false);
+            };
+
+            const randomizeAvatar = () => {
+                const randomSeed = Math.random().toString(36).substring(7);
+                setFormData({ 
+                    ...formData, 
+                    avatar: `https://api.dicebear.com/7.x/adventurer/svg?seed=${randomSeed}&backgroundColor=b6e3f4` 
+                });
+            };
+
+            return (
             <div className="pt-24 px-6 md:px-12 max-w-6xl mx-auto animate-in">
                 <h1 className="text-3xl font-bold text-white mb-8">Account Settings</h1>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-1 space-y-6">
                         <div className="p-6 rounded-2xl bg-gradient-to-br from-[#1a1a20] to-[#0f0f12] border border-white/5 text-center relative overflow-hidden">
                             <div className="relative">
-                                <div className="w-24 h-24 mx-auto rounded-2xl p-1 bg-[#0f0f12] mb-4"><img src={user.avatar} className="w-full h-full rounded-xl object-cover" alt="avatar" /></div>
-                                <h2 className="text-2xl font-bold text-white">{user.name}</h2>
-                                <p className="text-slate-400 text-sm mb-4">{user.handle}</p>
+                                <div className="w-24 h-24 mx-auto rounded-2xl p-1 bg-[#0f0f12] mb-4 relative group">
+                                    <img src={formData.avatar} className="w-full h-full rounded-xl object-cover" alt="avatar" />
+                                    {isEditing && (
+                                        <button 
+                                            onClick={randomizeAvatar}
+                                            className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-xl cursor-pointer"
+                                        >
+                                            <RefreshCw size={24} className="text-white" />
+                                        </button>
+                                    )}
+                                </div>
+                                
+                                {isEditing ? (
+                                    <div className="space-y-3 mb-4">
+                                        <input 
+                                            type="text" 
+                                            value={formData.name} 
+                                            onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                            className="w-full bg-black/20 border border-white/10 rounded px-3 py-2 text-center text-white font-bold text-lg focus:border-fuchsia-500 focus:outline-none"
+                                            placeholder="Your Name"
+                                        />
+                                        <input 
+                                            type="text" 
+                                            value={formData.handle} 
+                                            onChange={(e) => setFormData({...formData, handle: e.target.value})}
+                                            className="w-full bg-black/20 border border-white/10 rounded px-3 py-1.5 text-center text-slate-400 text-sm focus:border-fuchsia-500 focus:outline-none"
+                                            placeholder="@handle"
+                                        />
+                                    </div>
+                                ) : (
+                                    <>
+                                        <h2 className="text-2xl font-bold text-white">{user.name}</h2>
+                                        <p className="text-slate-400 text-sm mb-4">{user.handle}</p>
+                                    </>
+                                )}
+
                                 <div className="inline-flex items-center px-3 py-1 rounded-full border border-fuchsia-500/30 bg-fuchsia-500/10 text-fuchsia-400 text-xs font-bold uppercase tracking-wider mb-6">{user.plan}</div>
+                                
+                                {isEditing ? (
+                                    <div className="flex gap-2">
+                                        <button onClick={handleSave} className="flex-1 flex items-center justify-center gap-2 py-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white rounded-lg text-sm font-bold transition-colors">
+                                            <Save size={16} /> Save
+                                        </button>
+                                        <button onClick={handleCancel} className="flex-1 flex items-center justify-center gap-2 py-2 border border-white/10 text-slate-300 hover:bg-white/5 rounded-lg text-sm font-bold transition-colors">
+                                            <X size={16} /> Cancel
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button onClick={() => setIsEditing(true)} className="w-full flex items-center justify-center gap-2 py-2 border border-white/10 text-slate-300 hover:bg-white/5 rounded-lg text-sm font-bold transition-colors mb-4">
+                                        <Edit2 size={16} /> Edit Profile
+                                    </button>
+                                )}
                             </div>
                         </div>
                         <div className="bg-[#15151a] rounded-xl p-2 border border-white/5">
@@ -589,9 +761,38 @@
                             <ProfileLink icon={<LogOut size={18} />} label="Log Out" red />
                         </div>
                     </div>
+                    
+                    {/* Settings Panel */}
+                    <div className="lg:col-span-2 space-y-6">
+                        <div className="p-6 rounded-xl border border-fuchsia-500/20 bg-fuchsia-500/5 flex items-center justify-between">
+                            <div>
+                                <h3 className="text-lg font-bold text-white mb-1">Upgrade to Mega-Fan</h3>
+                                <p className="text-sm text-slate-400">Offline viewing, 4 simultaneous streams, and merch discounts.</p>
+                            </div>
+                            <button className="px-4 py-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white text-sm font-bold rounded shadow-lg shadow-fuchsia-500/20 transition-all">Upgrade</button>
+                        </div>
+
+                        <div className="bg-[#15151a] rounded-xl border border-white/5 overflow-hidden">
+                            <div className="p-4 border-b border-white/5 bg-white/5"><h3 className="font-bold text-white">General Preferences</h3></div>
+                            <div className="divide-y divide-white/5">
+                                <SettingRow icon={<Globe className="text-cyan-400"/>} title="Audio & Subtitles" value="Japanese (Original) / English Subs" />
+                                <SettingRow icon={<MonitorPlay className="text-purple-400"/>} title="Video Quality" value="Auto (1080p)" />
+                                <SettingRow icon={<Bell className="text-yellow-400"/>} title="Notifications" value="Push & Email" />
+                                <SettingRow icon={<Shield className="text-green-400"/>} title="Parental Controls" value="Off" />
+                            </div>
+                        </div>
+
+                        <div className="bg-[#15151a] rounded-xl border border-white/5 overflow-hidden">
+                            <div className="p-4 border-b border-white/5 bg-white/5"><h3 className="font-bold text-white">Appearance</h3></div>
+                            <div className="p-6 flex gap-4">
+                                <ThemeOption color="bg-[#0a0a0f]" label="Dark" active /><ThemeOption color="bg-slate-200" label="Light" /><ThemeOption color="bg-[#1a0b2e]" label="Midnight" />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        );
+            );
+        };
 
         // --- HELPER COMPONENTS ---
         const NavLink = ({ label, active, onClick }) => (
@@ -601,7 +802,7 @@
         const ContentRow = ({ title, items, onNavigate, onToggle, checkList }) => (
             <div className="space-y-4">
                 <div className="flex items-center justify-between px-2">
-                    <h2 className="text-xl font-bold text-white flex items-center gap-2 border-l-4 border-fuchsia-500 pl-3">{title}</h2>
+                    <h2 className="text-lg md:text-xl font-bold text-white flex items-center gap-2 border-l-4 border-fuchsia-500 pl-3">{title}</h2>
                     <span className="text-xs font-bold text-slate-500 uppercase hover:text-white cursor-pointer flex items-center gap-1">View All <ChevronRight size={12}/></span>
                 </div>
                 <div className="flex gap-4 overflow-x-auto pb-8 pt-2 px-2 scrollbar-hide snap-x">
