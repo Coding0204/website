@@ -20,23 +20,31 @@
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         .animate-in { animation: fadeIn 0.5s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Glassmorphism utilities */
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
     </style>
     
     <!-- Babel for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
-<body class="bg-[#0a0a0f] text-slate-100">
+<body class="bg-[#0a0a0f] text-slate-100 overflow-x-hidden">
     <div id="root"></div>
 
     <script type="text/babel" data-type="module">
         import React, { useState, useEffect } from 'https://esm.sh/react@18.2.0';
         import { createRoot } from 'https://esm.sh/react-dom@18.2.0/client';
         import { 
-          Play, Info, Plus, Search, Bell, User, Settings, LogOut, ChevronRight, 
-          Star, TrendingUp, Clock, Calendar, Tv, MonitorPlay, MessageSquare, 
-          Share2, Volume2, Maximize, SkipForward, CreditCard, Shield, Globe, 
-          Palette, History, BookOpen, Newspaper, Flame, Check, X, Trash2, Menu,
-          Edit2, Save, Camera, RefreshCw, AlertCircle, RefreshCcw
+            Play, Info, Plus, Search, Bell, User, Settings, LogOut, ChevronRight, 
+            Star, TrendingUp, Clock, Calendar, Tv, MonitorPlay, MessageSquare, 
+            Share2, Volume2, Maximize, SkipForward, CreditCard, Shield, Globe, 
+            Palette, History, BookOpen, Newspaper, Flame, Check, X, Trash2, Menu,
+            Edit2, Save, Camera, RefreshCw, AlertCircle, RefreshCcw
         } from 'https://esm.sh/lucide-react@0.300.0';
 
         // --- DATA CONSTANTS ---
@@ -144,14 +152,19 @@
 
             // Watchlist State Management
             const [myWatchlist, setMyWatchlist] = useState(() => {
-                const saved = localStorage.getItem('aniStream_watchlist');
-                return saved ? JSON.parse(saved) : [];
+                try {
+                    const saved = localStorage.getItem('aniStream_watchlist');
+                    return saved ? JSON.parse(saved) : [];
+                } catch(e) { return [] }
             });
 
             // Watch History State Management
             const [watchHistory, setWatchHistory] = useState(() => {
-                const saved = localStorage.getItem('aniStream_history');
-                if (saved) return JSON.parse(saved);
+                try {
+                    const saved = localStorage.getItem('aniStream_history');
+                    if (saved) return JSON.parse(saved);
+                } catch(e) {}
+                
                 return [
                     { title: "Cyber Samurai 2099", ep: 12, time: "12m left", percent: 65, date: "Just now", image: trendingAnime[0].image },
                     { title: "Spy x Family", ep: 24, time: "Completed", percent: 100, date: "2 hours ago", image: trendingAnime[2].image },
@@ -163,8 +176,11 @@
 
             // User Profile State Management
             const [user, setUser] = useState(() => {
-                const saved = localStorage.getItem('aniStream_user');
-                if (saved) return JSON.parse(saved);
+                try {
+                    const saved = localStorage.getItem('aniStream_user');
+                    if (saved) return JSON.parse(saved);
+                } catch(e) {}
+                
                 return {
                     name: "Kaito Nakamura",
                     handle: "@kai_otaku",
@@ -298,7 +314,7 @@
                                     <input 
                                         type="text" 
                                         placeholder="Search anime..." 
-                                        className="bg-transparent border-none focus:ring-0 text-sm text-white w-24 lg:w-32 group-focus-within:w-48 transition-all placeholder:text-slate-600" 
+                                        className="bg-transparent border-none focus:ring-0 text-sm text-white w-24 lg:w-32 group-focus-within:w-48 transition-all placeholder:text-slate-600 outline-none ml-2" 
                                         value={searchQuery}
                                         onChange={handleSearchInput}
                                     />
@@ -551,31 +567,58 @@
             </div>
         );
 
-        // --- UPDATED WATCHED HISTORY VIEW (No Photos) ---
-        const WatchedView = ({ onNavigate, history, onClear, onAdd }) => (
-            <div className="pt-24 px-6 max-w-4xl mx-auto animate-in">
-                <div className="flex items-center justify-between mb-8">
-                    <h1 className="text-3xl font-bold text-white flex items-center gap-3"><History className="text-cyan-400" /> Watch History</h1>
-                    <div className="flex gap-3">
-                        <button onClick={onAdd} className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm font-bold transition-colors"><Plus size={16} /> <span className="hidden sm:inline">Add Anime</span></button>
-                        <button onClick={onClear} className="flex items-center gap-2 px-4 py-2 border border-red-900/50 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-lg text-sm font-bold uppercase transition-colors"><Trash2 size={16} /> Clear</button>
+        // --- UPDATED WATCHED HISTORY VIEW (Split Sections) ---
+        const WatchedView = ({ onNavigate, history, onClear, onAdd }) => {
+            const continueWatching = history.filter(item => item.percent < 100);
+            const finished = history.filter(item => item.percent === 100);
+
+            return (
+                <div className="pt-24 px-6 max-w-4xl mx-auto animate-in">
+                    <div className="flex items-center justify-between mb-8">
+                        <h1 className="text-3xl font-bold text-white flex items-center gap-3"><History className="text-cyan-400" /> Watch History</h1>
+                        <div className="flex gap-3">
+                            <button onClick={onAdd} className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm font-bold transition-colors"><Plus size={16} /> <span className="hidden sm:inline">Add Anime</span></button>
+                            <button onClick={onClear} className="flex items-center gap-2 px-4 py-2 border border-red-900/50 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-lg text-sm font-bold uppercase transition-colors"><Trash2 size={16} /> Clear</button>
+                        </div>
                     </div>
+                    {history.length > 0 ? (
+                        <div className="space-y-10">
+                            {continueWatching.length > 0 && (
+                                <div>
+                                    <h2 className="text-lg font-bold text-slate-300 mb-4 uppercase tracking-wider flex items-center gap-2">
+                                        <Play size={16} className="text-fuchsia-500" /> Continue Watching
+                                    </h2>
+                                    <div className="space-y-3">
+                                        {continueWatching.map((item, idx) => (
+                                            <HistoryCard key={`cont-${idx}`} item={item} onNavigate={onNavigate} />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {finished.length > 0 && (
+                                <div>
+                                    <h2 className="text-lg font-bold text-slate-300 mb-4 uppercase tracking-wider flex items-center gap-2">
+                                        <Check size={16} className="text-green-500" /> Finished
+                                    </h2>
+                                    <div className="space-y-3">
+                                        {finished.map((item, idx) => (
+                                            <HistoryCard key={`fin-${idx}`} item={item} onNavigate={onNavigate} />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-white/10 rounded-2xl bg-white/5">
+                            <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mb-3 text-slate-500"><History size={24} /></div>
+                            <p className="text-slate-400">No watch history yet.</p>
+                            <button onClick={() => onNavigate('home')} className="mt-4 text-fuchsia-400 hover:text-fuchsia-300 text-sm font-bold">Start Watching</button>
+                        </div>
+                    )}
                 </div>
-                {history.length > 0 ? (
-                    <div className="space-y-3">
-                        {history.map((item, idx) => (
-                            <HistoryCard key={idx} item={item} onNavigate={onNavigate} />
-                        ))}
-                    </div>
-                ) : (
-                    <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-white/10 rounded-2xl bg-white/5">
-                        <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mb-3 text-slate-500"><History size={24} /></div>
-                        <p className="text-slate-400">No watch history yet.</p>
-                        <button onClick={() => onNavigate('home')} className="mt-4 text-fuchsia-400 hover:text-fuchsia-300 text-sm font-bold">Start Watching</button>
-                    </div>
-                )}
-            </div>
-        );
+            );
+        };
 
         const HistoryCard = ({ item, onNavigate }) => {
             return (
