@@ -164,9 +164,9 @@
                                             <input type="radio" name="status" value="watching" checked={status === 'watching'} onChange={() => setStatus('watching')} className="hidden" />
                                             <Play size={14} className="inline mr-1 mb-0.5" /> Continue
                                         </label>
-                                        <label className={`flex-1 cursor-pointer p-3 rounded-lg border transition-all text-center text-xs font-bold ${status === 'watched' ? 'bg-green-600 border-green-500 text-white shadow-lg shadow-green-500/20' : `${theme.border} ${theme.subtext} hover:opacity-80`}`}>
-                                            <input type="radio" name="status" value="watched" checked={status === 'watched'} onChange={() => setStatus('watched')} className="hidden" />
-                                            <Check size={14} className="inline mr-1 mb-0.5" /> Watched
+                                        <label className={`flex-1 cursor-pointer p-3 rounded-lg border transition-all text-center text-xs font-bold ${status === 'completed' ? 'bg-green-600 border-green-500 text-white shadow-lg shadow-green-500/20' : `${theme.border} ${theme.subtext} hover:opacity-80`}`}>
+                                            <input type="radio" name="status" value="completed" checked={status === 'completed'} onChange={() => setStatus('completed')} className="hidden" />
+                                            <Check size={14} className="inline mr-1 mb-0.5" /> Completed
                                         </label>
                                     </div>
                                 </div>
@@ -292,7 +292,7 @@
                 let percent = 0;
                 let time = "Just started";
 
-                if (entry.status === 'watched') {
+                if (entry.status === 'completed') {
                     percent = 100;
                     time = "Completed";
                 } else if (entry.status === 'watching') {
@@ -671,7 +671,7 @@
                             {finished.length > 0 && (
                                 <div>
                                     <h2 className={`text-lg font-bold ${theme.subtext} mb-4 uppercase tracking-wider flex items-center gap-2`}>
-                                        <Check size={16} className="text-green-500" /> Finished
+                                        <Check size={16} className="text-green-500" /> Completed
                                     </h2>
                                     <div className="space-y-3">
                                         {finished.map((item, idx) => (
