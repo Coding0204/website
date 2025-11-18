@@ -193,6 +193,188 @@
             );
         };
 
+        // --- WATCH VIEW COMPONENT ---
+        const WatchView = ({ theme }) => {
+            const [currentTime, setCurrentTime] = useState(0);
+            const [duration, setDuration] = useState(1200); // 20 minutes in seconds
+            const [isPlaying, setIsPlaying] = useState(false);
+            const [volume, setVolume] = useState(80);
+            
+            // Simulate video progress
+            useEffect(() => {
+                let interval;
+                if (isPlaying && currentTime < duration) {
+                    interval = setInterval(() => {
+                        setCurrentTime(prev => Math.min(prev + 1, duration));
+                    }, 1000);
+                }
+                return () => clearInterval(interval);
+            }, [isPlaying, currentTime, duration]);
+            
+            const formatTime = (seconds) => {
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            };
+            
+            const handleSeek = (e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                setCurrentTime(Math.floor(percent * duration));
+            };
+            
+            const handleVolumeChange = (e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const percent = (e.clientY - rect.bottom) / (rect.top - rect.bottom);
+                setVolume(Math.floor(percent * 100));
+            };
+            
+            return (
+                <div className={`min-h-screen ${theme.bg} ${theme.text} pt-20`}>
+                    <div className="max-w-7xl mx-auto px-4">
+                        {/* Video Player */}
+                        <div className="relative aspect-video bg-black rounded-xl overflow-hidden mb-6">
+                            {/* Placeholder for video */}
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-900/30 to-fuchsia-900/30">
+                                <div className="text-center">
+                                    <div className="w-20 h-20 rounded-full bg-fuchsia-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-fuchsia-500/30">
+                                        {isPlaying ? (
+                                            <div className="flex gap-1">
+                                                <div className="w-2 h-6 bg-white rounded-sm"></div>
+                                                <div className="w-2 h-6 bg-white rounded-sm"></div>
+                                            </div>
+                                        ) : (
+                                            <Play size={24} className="fill-white text-white ml-1" />
+                                        )}
+                                    </div>
+                                    <p className="text-white font-medium">AniStream Player</p>
+                                    <p className="text-slate-300 text-sm mt-1">Now Playing: Void Walker Eclipse</p>
+                                </div>
+                            </div>
+                            
+                            {/* Video Controls Overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity flex flex-col justify-end p-6">
+                                {/* Progress Bar */}
+                                <div className="mb-4">
+                                    <div 
+                                        className="w-full h-1 bg-white/30 rounded-full cursor-pointer"
+                                        onClick={handleSeek}
+                                    >
+                                        <div 
+                                            className="h-full bg-fuchsia-600 rounded-full relative"
+                                            style={{ width: `${(currentTime / duration) * 100}%` }}
+                                        >
+                                            <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow"></div>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between text-xs text-white mt-1">
+                                        <span>{formatTime(currentTime)}</span>
+                                        <span>{formatTime(duration)}</span>
+                                    </div>
+                                </div>
+                                
+                                {/* Control Buttons */}
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <button 
+                                            onClick={() => setIsPlaying(!isPlaying)}
+                                            className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-black hover:bg-slate-200 transition-colors"
+                                        >
+                                            {isPlaying ? (
+                                                <div className="flex gap-1">
+                                                    <div className="w-1 h-3 bg-black rounded-sm"></div>
+                                                    <div className="w-1 h-3 bg-black rounded-sm"></div>
+                                                </div>
+                                            ) : (
+                                                <Play size={16} className="fill-black text-black ml-0.5" />
+                                            )}
+                                        </button>
+                                        
+                                        <button className="text-white hover:text-slate-300 transition-colors">
+                                            <SkipForward size={20} />
+                                        </button>
+                                        
+                                        {/* Volume Control */}
+                                        <div className="flex items-center gap-2">
+                                            <button className="text-white hover:text-slate-300 transition-colors">
+                                                <Volume2 size={20} />
+                                            </button>
+                                            <div 
+                                                className="w-20 h-1 bg-white/30 rounded-full cursor-pointer relative"
+                                                onClick={handleVolumeChange}
+                                            >
+                                                <div 
+                                                    className="h-full bg-white rounded-full"
+                                                    style={{ width: `${volume}%` }}
+                                                ></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-4">
+                                        <button className="text-white hover:text-slate-300 transition-colors">
+                                            <Maximize size={20} />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {/* Episode Info */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div className="lg:col-span-2">
+                                <h1 className="text-2xl font-bold mb-2">Void Walker: Eclipse - Episode 1</h1>
+                                <p className="text-slate-300 mb-4">
+                                    When the stars begin to vanish, a lone drifter must navigate the edge of the known universe to uncover a conspiracy that threatens existence itself.
+                                </p>
+                                
+                                <div className="flex flex-wrap gap-2 mb-6">
+                                    <span className="px-3 py-1 bg-fuchsia-600/20 text-fuchsia-400 rounded-full text-sm font-medium">Sci-Fi</span>
+                                    <span className="px-3 py-1 bg-cyan-600/20 text-cyan-400 rounded-full text-sm font-medium">Mystery</span>
+                                    <span className="px-3 py-1 bg-purple-600/20 text-purple-400 rounded-full text-sm font-medium">Action</span>
+                                </div>
+                                
+                                <div className="flex items-center gap-4 text-sm text-slate-400">
+                                    <div className="flex items-center gap-1">
+                                        <Star size={16} className="text-yellow-500 fill-yellow-500" />
+                                        <span>4.9</span>
+                                    </div>
+                                    <div>•</div>
+                                    <div>TV Series</div>
+                                    <div>•</div>
+                                    <div>2025</div>
+                                </div>
+                            </div>
+                            
+                            <div className="space-y-4">
+                                <h3 className="font-bold text-lg">Episodes</h3>
+                                <div className="space-y-2 max-h-80 overflow-y-auto">
+                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(ep => (
+                                        <div 
+                                            key={ep}
+                                            className={`p-3 rounded-lg cursor-pointer transition-colors ${ep === 1 ? 'bg-fuchsia-600/20 border border-fuchsia-500/30' : `${theme.card} border ${theme.border} hover:border-fuchsia-500/30`}`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`w-8 h-8 rounded flex items-center justify-center ${ep === 1 ? 'bg-fuchsia-600' : 'bg-white/10'}`}>
+                                                        <Play size={14} className={ep === 1 ? 'fill-white text-white' : 'text-slate-300'} />
+                                                    </div>
+                                                    <span className={ep === 1 ? 'text-white font-medium' : theme.text}>Episode {ep}</span>
+                                                </div>
+                                                {ep === 1 && (
+                                                    <span className="text-xs bg-fuchsia-600 px-2 py-1 rounded">Playing</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         // --- MAIN APP COMPONENT ---
         const AniStream = () => {
             const [scrolled, setScrolled] = useState(false);
@@ -573,8 +755,6 @@
             );
         };
 
-        // Removed WatchView component completely
-
         const WatchlistView = ({ onNavigate, watchlist, onToggle, onAdd, theme }) => (
             <div className="pt-24 px-6 max-w-7xl mx-auto animate-in">
                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
@@ -775,17 +955,13 @@
             </div>
         );
 
-        const ProfileView = ({ user, onNavigate, onUpdate, onReset, theme, onThemeChange }) => {
-            const renderContent = () => {
-                switch (activeTab) {
-                    case 'home': return <HomeView onNavigate={handleNavClick} onToggle={toggleWatchlist} checkList={isInWatchlist} theme={theme} />;
-                    case 'browse': return <BrowseView onNavigate={handleNavClick} onToggle={toggleWatchlist} checkList={isInWatchlist} theme={theme} />;
-                    case 'search': return <SearchView query={searchQuery} onNavigate={handleNavClick} onToggle={toggleWatchlist} checkList={isInWatchlist} theme={theme} />;
-                    case 'profile': return <ProfileView user={user} onUpdate={updateUser} onNavigate={handleNavClick} onReset={resetAppData} theme={theme} onThemeChange={setThemeMode} />;
-                    case 'watchlist': return <WatchlistView onNavigate={handleNavClick} watchlist={myWatchlist} onToggle={toggleWatchlist} onAdd={() => handleOpenAddModal('watchlist')} theme={theme} />;
-                    case 'watched': return <WatchedView onNavigate={handleNavClick} history={watchHistory} onClear={clearHistory} onRemove={removeFromHistory} onAdd={() => handleOpenAddModal('history')} theme={theme} />;
-                    default: return <HomeView onNavigate={handleNavClick} onToggle={toggleWatchlist} checkList={isInWatchlist} theme={theme} />;
-                }
+        const ProfileView = ({ user, onUpdate, onNavigate, onReset, theme, onThemeChange }) => {
+            const [isEditing, setIsEditing] = useState(false);
+            const [formData, setFormData] = useState({ ...user });
+
+            const handleSave = () => {
+                onUpdate(formData);
+                setIsEditing(false);
             };
 
             const handleCancel = () => {
