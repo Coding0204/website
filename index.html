@@ -152,13 +152,13 @@
             const [showAddModal, setShowAddModal] = useState(false);
             const [addModalTarget, setAddModalTarget] = useState('watchlist'); 
 
-            // Watchlist State Management (Persistence: LocalStorage)
+            // Watchlist State Management
             const [myWatchlist, setMyWatchlist] = useState(() => {
                 const saved = localStorage.getItem('aniStream_watchlist');
                 return saved ? JSON.parse(saved) : [];
             });
 
-            // Watch History State Management (Persistence: LocalStorage)
+            // Watch History State Management
             const [watchHistory, setWatchHistory] = useState(() => {
                 const saved = localStorage.getItem('aniStream_history');
                 if (saved) return JSON.parse(saved);
@@ -171,7 +171,7 @@
                 ];
             });
 
-            // User Profile State Management (Persistence: LocalStorage)
+            // User Profile State Management
             const [user, setUser] = useState(() => {
                 const saved = localStorage.getItem('aniStream_user');
                 if (saved) return JSON.parse(saved);
@@ -189,7 +189,7 @@
             useEffect(() => { localStorage.setItem('aniStream_history', JSON.stringify(watchHistory)); }, [watchHistory]);
             useEffect(() => { localStorage.setItem('aniStream_user', JSON.stringify(user)); }, [user]);
 
-            // RESET FUNCTION (For Testing)
+            // RESET FUNCTION
             const resetAppData = () => {
                 if(confirm("Are you sure you want to reset all app data? This will clear your watchlist and history.")) {
                     localStorage.removeItem('aniStream_watchlist');
@@ -534,11 +534,20 @@
                     </div>
                 </div>
                 {watchlist.length > 0 ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                         {watchlist.map((anime, idx) => (
-                            <div key={idx} className="relative group">
-                                <AnimeCard item={anime} title={anime.title} genre={anime.genre} image={anime.image} rating={anime.rating} onNavigate={onNavigate} onToggle={onToggle} isAdded={true} />
-                                <button onClick={(e) => { e.stopPropagation(); onToggle(anime); }} className="absolute top-2 right-2 p-1.5 bg-black/60 text-slate-400 hover:text-red-400 hover:bg-black rounded-full opacity-0 group-hover:opacity-100 transition-all z-10"><X size={14} /></button>
+                            <div key={idx} className="relative group p-5 rounded-xl bg-[#15151a] border border-white/5 hover:border-fuchsia-500/30 transition-all cursor-pointer" onClick={() => onNavigate('watch')}>
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h3 className="text-lg font-bold text-white group-hover:text-fuchsia-400 transition-colors pr-6">{anime.title}</h3>
+                                        <p className="text-slate-500 text-xs mt-1 font-medium">{anime.genre}</p>
+                                        <div className="flex items-center gap-2 mt-3">
+                                            <Star size={12} className="text-yellow-500 fill-yellow-500" />
+                                            <span className="text-xs text-slate-300">{anime.rating}</span>
+                                        </div>
+                                    </div>
+                                    <button onClick={(e) => { e.stopPropagation(); onToggle(anime); }} className="text-slate-500 hover:text-red-400 transition-colors p-1 -mr-2 -mt-2"><X size={18} /></button>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -562,18 +571,22 @@
                     </div>
                 </div>
                 {history.length > 0 ? (
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                         {history.map((item, idx) => (
-                            <div key={idx} className="flex gap-4 p-4 rounded-xl bg-[#15151a] border border-white/5 hover:border-fuchsia-500/30 group transition-all cursor-pointer" onClick={() => onNavigate('watch')}>
-                                <div className="relative w-28 sm:w-40 h-16 sm:h-24 bg-slate-800 rounded-lg flex-shrink-0 overflow-hidden">
-                                    <img src={item.image} alt={item.title} className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity" />
-                                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><Play size={24} className="fill-white text-white" /></div>
-                                    <div className="absolute bottom-0 left-0 w-full h-1 bg-slate-800"><div className="h-full bg-fuchsia-600" style={{ width: `${item.percent}%` }}></div></div>
+                            <div key={idx} className="p-4 rounded-xl bg-[#15151a] border border-white/5 hover:border-fuchsia-500/30 group transition-all cursor-pointer" onClick={() => onNavigate('watch')}>
+                                <div className="flex justify-between items-center mb-2">
+                                    <div>
+                                        <h3 className="text-base font-bold text-white group-hover:text-cyan-400 transition-colors">{item.title}</h3>
+                                        <div className="flex items-center gap-3 mt-1">
+                                            <span className="text-xs text-slate-400">Ep {item.ep}</span>
+                                            <span className="text-[10px] text-slate-600">•</span>
+                                            <span className="text-xs text-slate-500">{item.date}</span>
+                                        </div>
+                                    </div>
+                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${item.percent === 100 ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}`}>{item.time}</span>
                                 </div>
-                                <div className="flex flex-col justify-center flex-1">
-                                    <h3 className="text-base sm:text-lg font-bold text-white group-hover:text-cyan-400 transition-colors line-clamp-1">{item.title}</h3>
-                                    <p className="text-slate-400 text-xs sm:text-sm">Episode {item.ep}</p>
-                                    <div className="flex items-center gap-3 mt-1 sm:mt-2"><span className={`text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded ${item.percent === 100 ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}`}>{item.time}</span><span className="text-[10px] sm:text-xs text-slate-600">{item.date}</span></div>
+                                <div className="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                                    <div className="h-full bg-fuchsia-600" style={{ width: `${item.percent}%` }}></div>
                                 </div>
                             </div>
                         ))}
