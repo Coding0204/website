@@ -615,43 +615,103 @@
         );
 
         const WatchedView = ({ onNavigate, history, onClear, onAdd, onRemove, theme }) => {
+            const [filter, setFilter] = useState('all');
             const continueWatching = history.filter(item => item.percent < 100);
             const finished = history.filter(item => item.percent === 100);
 
             return (
-                <div className="pt-24 px-6 max-w-4xl mx-auto animate-in">
-                    <div className="flex items-center justify-between mb-8">
+                <div className="pt-24 px-6 max-w-7xl mx-auto animate-in">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                         <h1 className={`text-3xl font-bold ${theme.text} flex items-center gap-3`}><History className="text-cyan-400" /> Watch History</h1>
                         <div className="flex gap-3">
                             <button onClick={onAdd} className={`flex items-center gap-2 px-4 py-2 ${theme.buttonSec} rounded-lg text-sm font-bold transition-colors`}><Plus size={16} /> <span className="hidden sm:inline">Add Anime</span></button>
                             <button onClick={onClear} className="flex items-center gap-2 px-4 py-2 border border-red-900/50 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-lg text-sm font-bold uppercase transition-colors"><Trash2 size={16} /> Clear</button>
                         </div>
                     </div>
+
+                    <div className="flex gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide">
+                        <button onClick={() => setFilter('all')} className={`px-4 py-2 rounded-full text-sm font-bold transition-colors whitespace-nowrap ${filter === 'all' ? 'bg-fuchsia-600 text-white' : `${theme.buttonSec}`}`}>All Activity</button>
+                        <button onClick={() => setFilter('continue')} className={`px-4 py-2 rounded-full text-sm font-bold transition-colors whitespace-nowrap ${filter === 'continue' ? 'bg-fuchsia-600 text-white' : `${theme.buttonSec}`}`}>Continue Watching</button>
+                        <button onClick={() => setFilter('completed')} className={`px-4 py-2 rounded-full text-sm font-bold transition-colors whitespace-nowrap ${filter === 'completed' ? 'bg-fuchsia-600 text-white' : `${theme.buttonSec}`}`}>Completed</button>
+                    </div>
+
                     {history.length > 0 ? (
-                        <div className="space-y-10">
-                            {continueWatching.length > 0 && (
-                                <div>
-                                    <h2 className={`text-lg font-bold ${theme.subtext} mb-4 uppercase tracking-wider flex items-center gap-2`}>
-                                        <Play size={16} className="text-fuchsia-500" /> Continue Watching
-                                    </h2>
-                                    <div className="space-y-3">
-                                        {continueWatching.map((item, idx) => (
-                                            <HistoryCard key={`cont-${idx}`} item={item} onNavigate={onNavigate} onRemove={onRemove} theme={theme} />
-                                        ))}
+                        <div className="animate-in">
+                            {filter === 'all' && (
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                                    {/* Continue Watching Column */}
+                                    <div>
+                                        <h2 className={`text-lg font-bold ${theme.subtext} mb-4 uppercase tracking-wider flex items-center gap-2 pb-2 border-b ${theme.border}`}>
+                                            <Play size={16} className="text-fuchsia-500" /> Continue Watching
+                                            <span className="ml-auto text-xs opacity-50 bg-white/10 px-2 py-0.5 rounded-full">{continueWatching.length}</span>
+                                        </h2>
+                                        <div className="space-y-3">
+                                            {continueWatching.length > 0 ? (
+                                        continueWatching.map((item, idx) => (
+                                            <HistoryCard key={`cont-${idx}`} item={item} onNavigate={onNavigate} onRemove={onRemove} theme={theme} index={idx + 1} />
+                                        ))
+                                    ) : (
+                                        <div className={`p-8 border border-dashed ${theme.border} rounded-xl text-center`}>
+                                                    <p className={`${theme.subtext} text-sm`}>No shows in progress.</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Completed Column */}
+                                    <div>
+                                        <h2 className={`text-lg font-bold ${theme.subtext} mb-4 uppercase tracking-wider flex items-center gap-2 pb-2 border-b ${theme.border}`}>
+                                            <Check size={16} className="text-green-500" /> Completed
+                                            <span className="ml-auto text-xs opacity-50 bg-white/10 px-2 py-0.5 rounded-full">{finished.length}</span>
+                                        </h2>
+                                        <div className="space-y-3">
+                                            {finished.length > 0 ? (
+                                        finished.map((item, idx) => (
+                                            <HistoryCard key={`fin-${idx}`} item={item} onNavigate={onNavigate} onRemove={onRemove} theme={theme} index={idx + 1} />
+                                        ))
+                                    ) : (
+                                        <div className={`p-8 border border-dashed ${theme.border} rounded-xl text-center`}>
+                                                    <p className={`${theme.subtext} text-sm`}>No completed shows yet.</p>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             )}
 
-                            {finished.length > 0 && (
+                            {filter === 'continue' && (
                                 <div>
-                                    <h2 className={`text-lg font-bold ${theme.subtext} mb-4 uppercase tracking-wider flex items-center gap-2`}>
-                                        <Check size={16} className="text-green-500" /> Completed
+                                     <h2 className={`text-lg font-bold ${theme.subtext} mb-4 uppercase tracking-wider flex items-center gap-2`}>
+                                        <Play size={16} className="text-fuchsia-500" /> Continue Watching ({continueWatching.length})
                                     </h2>
-                                    <div className="space-y-3">
-                                        {finished.map((item, idx) => (
-                                            <HistoryCard key={`fin-${idx}`} item={item} onNavigate={onNavigate} onRemove={onRemove} theme={theme} />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {continueWatching.map((item, idx) => (
+                                            <HistoryCard key={`cont-filter-${idx}`} item={item} onNavigate={onNavigate} onRemove={onRemove} theme={theme} index={idx + 1} />
                                         ))}
                                     </div>
+                                    {continueWatching.length === 0 && (
+                                        <div className={`p-12 border border-dashed ${theme.border} rounded-xl text-center`}>
+                                            <p className={`${theme.subtext}`}>You have no active shows.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {filter === 'completed' && (
+                                <div>
+                                    <h2 className={`text-lg font-bold ${theme.subtext} mb-4 uppercase tracking-wider flex items-center gap-2`}>
+                                        <Check size={16} className="text-green-500" /> Completed ({finished.length})
+                                    </h2>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {finished.map((item, idx) => (
+                                            <HistoryCard key={`fin-filter-${idx}`} item={item} onNavigate={onNavigate} onRemove={onRemove} theme={theme} index={idx + 1} />
+                                        ))}
+                                    </div>
+                                    {finished.length === 0 && (
+                                        <div className={`p-12 border border-dashed ${theme.border} rounded-xl text-center`}>
+                                            <p className={`${theme.subtext}`}>You haven't finished any shows yet.</p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -666,12 +726,13 @@
             );
         };
 
-        const HistoryCard = ({ item, onNavigate, onRemove, theme }) => {
+        const HistoryCard = ({ item, onNavigate, onRemove, theme, index }) => {
             return (
-                <div className={`p-5 rounded-xl ${theme.card} border ${theme.border} hover:border-fuchsia-500/30 group transition-all cursor-default`}>
+                <div className={`p-5 rounded-xl ${theme.card} border ${theme.border} hover:border-fuchsia-500/30 group transition-all cursor-default`} onClick={() => onNavigate('watch')}>
                     <div className="flex justify-between items-start mb-3">
                         <div className="flex-1">
                             <div className="flex items-center gap-3 mb-1">
+                                {index && <span className={`text-sm font-mono font-bold ${theme.subtext} opacity-50 mr-1`}>#{index}</span>}
                                 <AnimeTitle title={item.title} className={`text-base mb-0 ${theme.text}`} theme={theme} />
                                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${item.percent === 100 ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}`}>{item.time}</span>
                             </div>
