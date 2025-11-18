@@ -217,6 +217,11 @@
             const isInWatchlist = (anime) => myWatchlist.some(item => item.title === anime.title);
             const clearHistory = () => setWatchHistory([]);
 
+            // Added function to remove individual items from history
+            const removeFromHistory = (anime) => {
+                setWatchHistory(prev => prev.filter(item => item.title !== anime.title));
+            };
+
             const updateUser = (updatedData) => {
                 setUser(prev => ({ ...prev, ...updatedData }));
             };
@@ -277,7 +282,8 @@
                     case 'profile': return <ProfileView user={user} onUpdate={updateUser} onNavigate={handleNavClick} onReset={resetAppData} />;
                     case 'watch': return <WatchView />;
                     case 'watchlist': return <WatchlistView onNavigate={handleNavClick} watchlist={myWatchlist} onToggle={toggleWatchlist} onAdd={() => handleOpenAddModal('watchlist')} />;
-                    case 'watched': return <WatchedView onNavigate={handleNavClick} history={watchHistory} onClear={clearHistory} onAdd={() => handleOpenAddModal('history')} />;
+                    // Passed onRemove prop to WatchedView
+                    case 'watched': return <WatchedView onNavigate={handleNavClick} history={watchHistory} onClear={clearHistory} onRemove={removeFromHistory} onAdd={() => handleOpenAddModal('history')} />;
                     default: return <HomeView onNavigate={handleNavClick} onToggle={toggleWatchlist} checkList={isInWatchlist} />;
                 }
             };
@@ -434,14 +440,15 @@
         };
 
         const HomeView = ({ onNavigate, onToggle, checkList }) => {
-            const heroAnime = { title: "Cyber Samurai 2099", genre: "Cyberpunk", image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=2574&auto=format&fit=crop", rating: "5.0" };
+            // Changed Hero Anime
+            const heroAnime = { title: "Void Walker: Eclipse", genre: "Sci-Fi, Mystery", image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1000&auto=format&fit=crop", rating: "4.9" };
             const isHeroAdded = checkList(heroAnime);
 
             return (
             <div className="animate-in">
                 {/* Hero Section */}
                 <div className="relative h-[85vh] w-full overflow-hidden">
-                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=2574&auto=format&fit=crop')] bg-cover bg-center">
+                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1000&auto=format&fit=crop')] bg-cover bg-center">
                         <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0f] via-[#0a0a0f]/60 to-transparent"></div>
                         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f]/20 to-transparent"></div>
                     </div>
@@ -449,7 +456,7 @@
                     <div className="absolute bottom-0 left-0 w-full p-6 md:p-16 pb-24">
                         <div className="max-w-3xl space-y-6">
                             <div className="flex items-center gap-3 animate-in" style={{animationDelay: '0.1s'}}>
-                                <span className="px-2 py-0.5 bg-fuchsia-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-sm">New Episode</span>
+                                <span className="px-2 py-0.5 bg-fuchsia-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-sm">World Premiere</span>
                                 <span className="px-2 py-0.5 bg-white/10 backdrop-blur text-white text-[10px] font-bold uppercase tracking-wider rounded-sm border border-white/10">Sub | Dub</span>
                                 <div className="flex text-yellow-400">
                                     <Star size={12} className="fill-yellow-400" /><Star size={12} className="fill-yellow-400" /><Star size={12} className="fill-yellow-400" /><Star size={12} className="fill-yellow-400" /><Star size={12} className="fill-yellow-400" />
@@ -457,11 +464,11 @@
                             </div>
                             
                             <h1 className="text-4xl md:text-7xl font-black text-white leading-tight italic uppercase tracking-tighter drop-shadow-2xl animate-in" style={{animationDelay: '0.2s'}}>
-                                Cyber Samurai <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">2099</span>
+                                Void Walker <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-fuchsia-500">Eclipse</span>
                             </h1>
                             
                             <p className="text-base md:text-lg text-slate-300 line-clamp-3 md:line-clamp-2 max-w-2xl animate-in" style={{animationDelay: '0.3s'}}>
-                                In a neon-drenched Tokyo where honor is obsolete, one ronin must merge with the machine to reclaim his family's legacy.
+                                When the stars begin to vanish, a lone drifter must navigate the edge of the known universe to uncover a conspiracy that threatens existence itself.
                             </p>
                             
                             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-4 animate-in" style={{animationDelay: '0.4s'}}>
@@ -567,8 +574,8 @@
             </div>
         );
 
-        // --- UPDATED WATCHED HISTORY VIEW (Split Sections) ---
-        const WatchedView = ({ onNavigate, history, onClear, onAdd }) => {
+        // --- UPDATED WATCHED HISTORY VIEW (Split Sections & Remove) ---
+        const WatchedView = ({ onNavigate, history, onClear, onAdd, onRemove }) => {
             const continueWatching = history.filter(item => item.percent < 100);
             const finished = history.filter(item => item.percent === 100);
 
@@ -590,7 +597,7 @@
                                     </h2>
                                     <div className="space-y-3">
                                         {continueWatching.map((item, idx) => (
-                                            <HistoryCard key={`cont-${idx}`} item={item} onNavigate={onNavigate} />
+                                            <HistoryCard key={`cont-${idx}`} item={item} onNavigate={onNavigate} onRemove={onRemove} />
                                         ))}
                                     </div>
                                 </div>
@@ -603,7 +610,7 @@
                                     </h2>
                                     <div className="space-y-3">
                                         {finished.map((item, idx) => (
-                                            <HistoryCard key={`fin-${idx}`} item={item} onNavigate={onNavigate} />
+                                            <HistoryCard key={`fin-${idx}`} item={item} onNavigate={onNavigate} onRemove={onRemove} />
                                         ))}
                                     </div>
                                 </div>
@@ -620,12 +627,25 @@
             );
         };
 
-        const HistoryCard = ({ item, onNavigate }) => {
+        const HistoryCard = ({ item, onNavigate, onRemove }) => {
             return (
                 <div className="p-5 rounded-xl bg-[#15151a] border border-white/5 hover:border-fuchsia-500/30 group transition-all cursor-pointer" onClick={() => onNavigate('watch')}>
-                    <div className="flex justify-between items-center mb-3">
-                        <AnimeTitle title={item.title} className="text-base" />
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${item.percent === 100 ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}`}>{item.time}</span>
+                    <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-1">
+                                <AnimeTitle title={item.title} className="text-base mb-0" />
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${item.percent === 100 ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}`}>{item.time}</span>
+                            </div>
+                        </div>
+                        {onRemove && (
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); onRemove(item); }} 
+                                className="text-slate-500 hover:text-red-400 transition-colors p-1 -mr-2 -mt-2"
+                                title="Remove from history"
+                            >
+                                <X size={18} />
+                            </button>
+                        )}
                     </div>
                     <div className="flex justify-between items-end">
                         <div className="flex items-center gap-3 text-xs text-slate-500">
