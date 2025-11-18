@@ -108,7 +108,6 @@
         // --- HELPER COMPONENT: Expandable Title ---
         const AnimeTitle = ({ title, className = "text-lg", theme }) => {
             const [expanded, setExpanded] = useState(false);
-            // Note: We use theme.text for the base color, but force it here to ensure visibility
             return (
                 <h3
                     onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
@@ -165,9 +164,9 @@
                                             <input type="radio" name="status" value="watching" checked={status === 'watching'} onChange={() => setStatus('watching')} className="hidden" />
                                             <Play size={14} className="inline mr-1 mb-0.5" /> Continue
                                         </label>
-                                        <label className={`flex-1 cursor-pointer p-3 rounded-lg border transition-all text-center text-xs font-bold ${status === 'completed' ? 'bg-green-600 border-green-500 text-white shadow-lg shadow-green-500/20' : `${theme.border} ${theme.subtext} hover:opacity-80`}`}>
-                                            <input type="radio" name="status" value="completed" checked={status === 'completed'} onChange={() => setStatus('completed')} className="hidden" />
-                                            <Check size={14} className="inline mr-1 mb-0.5" /> Finished
+                                        <label className={`flex-1 cursor-pointer p-3 rounded-lg border transition-all text-center text-xs font-bold ${status === 'watched' ? 'bg-green-600 border-green-500 text-white shadow-lg shadow-green-500/20' : `${theme.border} ${theme.subtext} hover:opacity-80`}`}>
+                                            <input type="radio" name="status" value="watched" checked={status === 'watched'} onChange={() => setStatus('watched')} className="hidden" />
+                                            <Check size={14} className="inline mr-1 mb-0.5" /> Watched
                                         </label>
                                     </div>
                                 </div>
@@ -276,7 +275,6 @@
             const isInWatchlist = (anime) => myWatchlist.some(item => item.title === anime.title);
             const clearHistory = () => setWatchHistory([]);
 
-            // Added function to remove individual items from history
             const removeFromHistory = (anime) => {
                 setWatchHistory(prev => prev.filter(item => item.title !== anime.title));
             };
@@ -294,12 +292,11 @@
                 let percent = 0;
                 let time = "Just started";
 
-                // Logic to determine progress based on user selection
-                if (entry.status === 'completed') {
+                if (entry.status === 'watched') {
                     percent = 100;
                     time = "Completed";
                 } else if (entry.status === 'watching') {
-                    percent = 45; // Default percentage for manually added "watching" items
+                    percent = 45; 
                     time = "Ep 12 left";
                 }
 
@@ -511,7 +508,6 @@
         };
 
         const HomeView = ({ onNavigate, onToggle, checkList, theme }) => {
-            // Changed Hero Anime
             const heroAnime = { title: "Void Walker: Eclipse", genre: "Sci-Fi, Mystery", image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1000&auto=format&fit=crop", rating: "4.9" };
             const isHeroAdded = checkList(heroAnime);
 
@@ -605,7 +601,6 @@
             </div>
         );
 
-        // --- UPDATED WATCHLIST VIEW (No Photos) ---
         const WatchlistView = ({ onNavigate, watchlist, onToggle, onAdd, theme }) => (
             <div className="pt-24 px-6 max-w-7xl mx-auto animate-in">
                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
@@ -645,7 +640,6 @@
             </div>
         );
 
-        // --- UPDATED WATCHED HISTORY VIEW (Split Sections & Remove) ---
         const WatchedView = ({ onNavigate, history, onClear, onAdd, onRemove, theme }) => {
             const continueWatching = history.filter(item => item.percent < 100);
             const finished = history.filter(item => item.percent === 100);
@@ -752,7 +746,6 @@
             const [isEditing, setIsEditing] = useState(false);
             const [formData, setFormData] = useState({ ...user });
 
-            // Sync form data with user prop if user changes externally (e.g. storage sync)
             useEffect(() => {
                 setFormData({ ...user });
             }, [user]);
@@ -879,7 +872,6 @@
             );
         };
 
-        // --- HELPER COMPONENTS ---
         const NavLink = ({ label, active, onClick, theme, scrolled }) => (
             <span onClick={onClick} className={`cursor-pointer transition-colors pb-1 border-b-2 ${active ? `${theme.text} border-fuchsia-500` : `${scrolled ? theme.subtext : 'text-slate-400'} border-transparent hover:${theme.text}`}`}>{label}</span>
         );
@@ -924,7 +916,6 @@
         const ThemeOption = ({ color, label, active, onClick, theme }) => (<div onClick={onClick} className={`flex-1 p-3 rounded-lg border cursor-pointer transition-all ${active ? 'border-fuchsia-500 bg-fuchsia-500/10' : `${theme.border} hover:border-fuchsia-500/50`}`}><div className={`w-full h-12 rounded mb-2 ${color} border ${theme.border} shadow-inner`}></div><div className={`text-center text-xs font-bold ${theme.subtext}`}>{label}</div></div>);
         const FilterChip = ({ label, active, theme }) => (<button className={`whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-bold transition-all ${active ? 'bg-white text-black' : `bg-white/5 ${theme.subtext} hover:bg-white/10 border ${theme.border}`}`}>{label}</button>);
 
-        // --- RENDER APP ---
         const root = createRoot(document.getElementById('root'));
         root.render(<AniStream />);
     </script>
