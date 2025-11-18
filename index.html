@@ -48,7 +48,7 @@
           Star, TrendingUp, Clock, Calendar, Tv, MonitorPlay, MessageSquare, 
           Share2, Volume2, Maximize, SkipForward, CreditCard, Shield, Globe, 
           Palette, History, BookOpen, Newspaper, Flame, Check, X, Trash2, Menu,
-          Edit2, Save, Camera, RefreshCw, AlertCircle
+          Edit2, Save, Camera, RefreshCw, AlertCircle, RefreshCcw
         } from 'https://esm.sh/lucide-react@0.300.0';
 
         // --- DATA CONSTANTS ---
@@ -152,13 +152,13 @@
             const [showAddModal, setShowAddModal] = useState(false);
             const [addModalTarget, setAddModalTarget] = useState('watchlist'); 
 
-            // Watchlist State Management
+            // Watchlist State Management (Persistence: LocalStorage)
             const [myWatchlist, setMyWatchlist] = useState(() => {
                 const saved = localStorage.getItem('aniStream_watchlist');
                 return saved ? JSON.parse(saved) : [];
             });
 
-            // Watch History State Management
+            // Watch History State Management (Persistence: LocalStorage)
             const [watchHistory, setWatchHistory] = useState(() => {
                 const saved = localStorage.getItem('aniStream_history');
                 if (saved) return JSON.parse(saved);
@@ -171,7 +171,7 @@
                 ];
             });
 
-            // User Profile State Management
+            // User Profile State Management (Persistence: LocalStorage)
             const [user, setUser] = useState(() => {
                 const saved = localStorage.getItem('aniStream_user');
                 if (saved) return JSON.parse(saved);
@@ -188,6 +188,16 @@
             useEffect(() => { localStorage.setItem('aniStream_watchlist', JSON.stringify(myWatchlist)); }, [myWatchlist]);
             useEffect(() => { localStorage.setItem('aniStream_history', JSON.stringify(watchHistory)); }, [watchHistory]);
             useEffect(() => { localStorage.setItem('aniStream_user', JSON.stringify(user)); }, [user]);
+
+            // RESET FUNCTION (For Testing)
+            const resetAppData = () => {
+                if(confirm("Are you sure you want to reset all app data? This will clear your watchlist and history.")) {
+                    localStorage.removeItem('aniStream_watchlist');
+                    localStorage.removeItem('aniStream_history');
+                    localStorage.removeItem('aniStream_user');
+                    window.location.reload();
+                }
+            };
 
             const toggleWatchlist = (anime) => {
                 const exists = myWatchlist.find(item => item.title === anime.title);
@@ -237,14 +247,14 @@
                 if (query.trim() !== '') {
                     setActiveTab('search');
                 } else if (activeTab === 'search') {
-                    setActiveTab('home'); // Optional: go back to home if search is cleared
+                    setActiveTab('home'); 
                 }
             };
 
             const handleNavClick = (tab) => {
                 setActiveTab(tab);
                 setMobileMenuOpen(false);
-                setSearchQuery(''); // Clear search on navigation
+                setSearchQuery(''); 
             };
 
             useEffect(() => {
@@ -258,13 +268,10 @@
                     case 'home': return <HomeView onNavigate={handleNavClick} onToggle={toggleWatchlist} checkList={isInWatchlist} />;
                     case 'browse': return <BrowseView onNavigate={handleNavClick} onToggle={toggleWatchlist} checkList={isInWatchlist} />;
                     case 'search': return <SearchView query={searchQuery} onNavigate={handleNavClick} onToggle={toggleWatchlist} checkList={isInWatchlist} />;
-                    case 'manga': return <MangaView />;
-                    case 'news': return <NewsView />;
-                    case 'profile': return <ProfileView user={user} onUpdate={updateUser} onNavigate={handleNavClick} />;
+                    case 'profile': return <ProfileView user={user} onUpdate={updateUser} onNavigate={handleNavClick} onReset={resetAppData} />;
                     case 'watch': return <WatchView />;
                     case 'watchlist': return <WatchlistView onNavigate={handleNavClick} watchlist={myWatchlist} onToggle={toggleWatchlist} onAdd={() => handleOpenAddModal('watchlist')} />;
                     case 'watched': return <WatchedView onNavigate={handleNavClick} history={watchHistory} onClear={clearHistory} onAdd={() => handleOpenAddModal('history')} />;
-                    case 'simulcast': return <SimulcastView onNavigate={handleNavClick} />;
                     default: return <HomeView onNavigate={handleNavClick} onToggle={toggleWatchlist} checkList={isInWatchlist} />;
                 }
             };
@@ -290,9 +297,8 @@
                                 <div className="hidden md:flex items-center gap-6 text-sm font-bold text-slate-300">
                                     <NavLink label="Home" active={activeTab === 'home'} onClick={() => handleNavClick('home')} />
                                     <NavLink label="Browse" active={activeTab === 'browse'} onClick={() => handleNavClick('browse')} />
-                                    <NavLink label="Simulcast" active={activeTab === 'simulcast'} onClick={() => handleNavClick('simulcast')} />
-                                    <NavLink label="Manga" active={activeTab === 'manga'} onClick={() => handleNavClick('manga')} />
-                                    <NavLink label="News" active={activeTab === 'news'} onClick={() => handleNavClick('news')} />
+                                    <NavLink label="Watchlist" active={activeTab === 'watchlist'} onClick={() => handleNavClick('watchlist')} />
+                                    <NavLink label="History" active={activeTab === 'watched'} onClick={() => handleNavClick('watched')} />
                                 </div>
                             </div>
 
@@ -325,12 +331,8 @@
                             <div className="flex flex-col gap-6 text-xl font-bold text-slate-300">
                                 <span onClick={() => handleNavClick('home')} className={activeTab === 'home' ? 'text-fuchsia-400' : ''}>Home</span>
                                 <span onClick={() => handleNavClick('browse')} className={activeTab === 'browse' ? 'text-fuchsia-400' : ''}>Browse</span>
-                                <span onClick={() => handleNavClick('simulcast')} className={activeTab === 'simulcast' ? 'text-fuchsia-400' : ''}>Simulcast</span>
-                                <span onClick={() => handleNavClick('manga')} className={activeTab === 'manga' ? 'text-fuchsia-400' : ''}>Manga Library</span>
-                                <span onClick={() => handleNavClick('news')} className={activeTab === 'news' ? 'text-fuchsia-400' : ''}>Newsroom</span>
-                                <hr className="border-white/10 my-2" />
-                                <span onClick={() => handleNavClick('watchlist')} className={activeTab === 'watchlist' ? 'text-fuchsia-400' : ''}>My Watchlist</span>
-                                <span onClick={() => handleNavClick('watched')} className={activeTab === 'watched' ? 'text-fuchsia-400' : ''}>Watch History</span>
+                                <span onClick={() => handleNavClick('watchlist')} className={activeTab === 'watchlist' ? 'text-fuchsia-400' : ''}>Watchlist</span>
+                                <span onClick={() => handleNavClick('watched')} className={activeTab === 'watched' ? 'text-fuchsia-400' : ''}>History</span>
                                 <span onClick={() => handleNavClick('profile')} className={activeTab === 'profile' ? 'text-fuchsia-400' : ''}>Profile Settings</span>
                             </div>
                         </div>
@@ -364,7 +366,6 @@
                                 <ul className="space-y-2 text-sm text-slate-400">
                                     <li className="hover:text-fuchsia-400 cursor-pointer" onClick={() => handleNavClick('browse')}>Browse Popular</li>
                                     <li className="hover:text-fuchsia-400 cursor-pointer" onClick={() => handleNavClick('watched')}>Watch History</li>
-                                    <li className="hover:text-fuchsia-400 cursor-pointer" onClick={() => handleNavClick('news')}>Newsroom</li>
                                 </ul>
                             </div>
                             <div>
@@ -603,70 +604,7 @@
             </div>
         );
 
-        const SimulcastView = ({ onNavigate }) => (
-            <div className="pt-24 px-6 max-w-7xl mx-auto animate-in">
-                <h1 className="text-3xl font-bold text-white mb-8">Simulcast Calendar</h1>
-                <div className="space-y-8">
-                    {['Monday', 'Tuesday', 'Wednesday'].map(day => (
-                        <div key={day}>
-                            <h3 className="text-xl font-bold text-cyan-400 mb-4 border-b border-white/10 pb-2">{day}</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {[1,2,3].map(i => (
-                                    <div key={i} onClick={() => onNavigate('watch')} className="flex gap-4 p-4 rounded-xl bg-[#15151a] border border-white/5 hover:border-fuchsia-500/30 transition-all group cursor-pointer">
-                                        <div className="w-20 h-28 bg-slate-800 rounded-lg flex-shrink-0 overflow-hidden">
-                                            <div className="w-full h-full bg-gradient-to-br from-purple-900/40 to-blue-900/40 group-hover:scale-110 transition-transform duration-500"></div>
-                                        </div>
-                                        <div className="flex flex-col justify-center">
-                                            <span className="text-xs text-fuchsia-400 font-bold mb-1">14:00 PM</span>
-                                            <h4 className="text-white font-bold leading-tight mb-2 group-hover:text-cyan-400 transition-colors">Reincarnated as a Vending Machine</h4>
-                                            <p className="text-xs text-slate-500">Episode 8</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        );
-
-        const MangaView = () => (
-            <div className="pt-24 px-6 max-w-7xl mx-auto animate-in">
-                <h1 className="text-3xl font-bold text-white mb-8 flex items-center gap-3"><BookOpen className="text-fuchsia-400" /> Manga Library</h1>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((item) => (
-                        <div key={item} className="group cursor-pointer">
-                            <div className="relative aspect-[2/3] bg-slate-800 rounded-lg overflow-hidden mb-2 shadow-lg border border-white/5 hover:border-fuchsia-500/50 transition-all">
-                                <div className={`absolute inset-0 bg-gradient-to-br ${item % 2 === 0 ? 'from-fuchsia-900/20' : 'from-cyan-900/20'} to-slate-900/80`}></div>
-                                <div className="absolute inset-0 flex items-center justify-center"><span className="text-4xl font-black text-white/10 italic">VOL {item}</span></div>
-                            </div>
-                            <h3 className="text-sm font-bold text-white group-hover:text-fuchsia-400 transition-colors">Manga Title {item}</h3>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        );
-
-        const NewsView = () => (
-            <div className="pt-24 px-6 max-w-5xl mx-auto animate-in">
-                <div className="mb-10 text-center">
-                    <h1 className="text-4xl font-black text-white mb-2 uppercase italic tracking-tight">AniStream <span className="text-cyan-400">News</span></h1>
-                    <p className="text-slate-400">The latest updates from the anime industry, straight from Tokyo.</p>
-                </div>
-                <div className="grid gap-6">
-                    <div className="relative h-80 rounded-2xl overflow-hidden group cursor-pointer border border-white/10">
-                        <div className="absolute inset-0 bg-gradient-to-r from-fuchsia-900/20 to-blue-900/20"></div>
-                        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1516280440614-6697288d5d38?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-40 group-hover:scale-105 transition-transform duration-700"></div>
-                        <div className="absolute bottom-0 left-0 p-8 max-w-2xl">
-                            <span className="px-3 py-1 bg-fuchsia-600 text-white text-xs font-bold rounded uppercase tracking-wider mb-3 inline-block">Breaking</span>
-                            <h2 className="text-3xl font-bold text-white mb-3 group-hover:text-cyan-400 transition-colors">Studio Ghibli Announces New Fantasy Epic</h2>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-
-        const ProfileView = ({ user, onNavigate, onUpdate }) => {
+        const ProfileView = ({ user, onNavigate, onUpdate, onReset }) => {
             const [isEditing, setIsEditing] = useState(false);
             const [formData, setFormData] = useState({ ...user });
 
@@ -758,6 +696,7 @@
                             <ProfileLink icon={<History size={18} />} label="Watch History" onClick={() => onNavigate('watched')} />
                             <ProfileLink icon={<Star size={18} />} label="My Reviews" />
                             <ProfileLink icon={<CreditCard size={18} />} label="Billing" />
+                            <ProfileLink icon={<RefreshCcw size={18} />} label="Reset Data" onClick={onReset} red />
                             <ProfileLink icon={<LogOut size={18} />} label="Log Out" red />
                         </div>
                     </div>
