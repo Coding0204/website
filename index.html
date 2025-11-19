@@ -279,13 +279,15 @@
             const handleCloseClick = () => {
                 const toast = document.getElementById(toastId);
                 if (toast) {
-                    toast.style.display = 'none';
+                    // Use opacity/pointer-events for smooth hiding
+                    toast.style.opacity = '0';
+                    toast.style.pointerEvents = 'none'; 
                     if (onClose) onClose();
                 }
             };
 
             return (
-                <div id={toastId} className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] max-w-sm w-11/12 md:w-full hidden">
+                <div id={toastId} className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] max-w-sm w-11/12 md:w-full transition-opacity duration-300 opacity-0 pointer-events-none">
                     <div className="bg-green-600 text-white p-4 rounded-lg shadow-2xl flex items-center justify-between toast-slide-in">
                         <div className="flex items-center">
                             <Check size={20} className="mr-2" />
@@ -487,11 +489,15 @@
 
                 if (toastElement && toastMessageElement) {
                     toastMessageElement.textContent = "Installing AniStream! Look for the icon on your home screen.";
-                    toastElement.style.display = 'block';
+                    
+                    // Show the toast smoothly using opacity/pointerEvents
+                    toastElement.style.opacity = '1';
+                    toastElement.style.pointerEvents = 'auto';
 
                     // Hide toast after 4 seconds (Manual timeout)
                     setTimeout(() => {
-                        toastElement.style.display = 'none';
+                        toastElement.style.opacity = '0';
+                        toastElement.style.pointerEvents = 'none';
                     }, 4000); 
                 }
             };
