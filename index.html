@@ -44,14 +44,6 @@
         .toggle-switch-circle {
             transition: transform 0.3s;
         }
-        /* New Custom Pulse Animation for Download Button (more subtle) */
-        @keyframes subtlePulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.85; transform: scale(1.02); }
-        }
-        .animate-subtle-pulse {
-            animation: subtlePulse 2s infinite ease-in-out;
-        }
     </style>
     
     <!-- Babel for JSX -->
@@ -69,7 +61,7 @@
             Share2, Volume2, Maximize, SkipForward, CreditCard, Shield, Globe, 
             Palette, History, BookOpen, Newspaper, Flame, Check, X, Trash2, Menu,
             Edit2, Save, Camera, RefreshCw, AlertCircle, RefreshCcw, ExternalLink,
-            Users, Zap, ShieldCheck, Database, Download, BookOpenText, HelpCircle, FileText
+            Users, Zap, ShieldCheck, Database, BookOpenText, HelpCircle, FileText
         } from 'https://esm.sh/lucide-react@0.300.0';
 
         // Helper function to generate an external URL pointing to HiAnime search
@@ -278,16 +270,12 @@
             );
         };
         
-        // --- DOWNLOAD TOAST COMPONENT ---
+        // --- DOWNLOAD TOAST COMPONENT (Removed logic, but kept placeholder) ---
         const DownloadToast = ({ message, show, onClose }) => {
-            // Note: This component is now managed via plain DOM manipulation in handleDownloadApp
             const toastId = 'download-toast';
-
-            // Function to manually close the toast (called by button click)
             const handleCloseClick = () => {
                 const toast = document.getElementById(toastId);
                 if (toast) {
-                    // Use opacity/pointer-events for smooth hiding
                     toast.style.opacity = '0';
                     toast.style.pointerEvents = 'none'; 
                     if (onClose) onClose();
@@ -299,7 +287,6 @@
                     <div className="bg-green-600 text-white p-4 rounded-lg shadow-2xl flex items-center justify-between toast-slide-in">
                         <div className="flex items-center">
                             <Check size={20} className="mr-2" />
-                            {/* FIX: Added id="toast-message" to allow handleDownloadApp to update the text content */}
                             <span id="toast-message" className="text-sm font-medium">{message}</span>
                         </div>
                         <button onClick={handleCloseClick} className="text-white/80 hover:text-white transition-colors p-1 -mr-2">
@@ -487,30 +474,6 @@
                 }
             };
 
-            // Function to handle the PWA/Simulated Download (REMOVED LOGIC)
-            const handleDownloadApp = (e) => {
-                e.preventDefault();
-                setMobileMenuOpen(false); // Close menu if open
-
-                const toastElement = document.getElementById('download-toast');
-                const toastMessageElement = document.getElementById('toast-message');
-
-                if (toastElement && toastMessageElement) {
-                    toastMessageElement.textContent = "Installation Simulated. Check your device's browser menu to 'Add to Home Screen'.";
-                    
-                    // Show the toast smoothly using opacity/pointerEvents
-                    toastElement.style.opacity = '1';
-                    toastElement.style.pointerEvents = 'auto';
-
-                    // Hide toast after 4 seconds (Manual timeout)
-                    setTimeout(() => {
-                        toastElement.style.opacity = '0';
-                        toastElement.style.pointerEvents = 'none';
-                    }, 4000); 
-                }
-            };
-
-
             return (
                 <div className={`min-h-screen ${theme.bg} ${theme.text} font-sans selection:bg-fuchsia-500/30 overflow-x-hidden relative transition-colors duration-300`}>
                     
@@ -606,12 +569,7 @@
                         />
                     )}
 
-                    {/* Download Toast Notification (Component remains, but manually controlled) */}
-                    <DownloadToast 
-                        message="" 
-                        show={false} 
-                        onClose={() => {}} 
-                    />
+                    {/* Download Toast Notification (Component removed) */}
 
                     {/* Footer - START OF ENHANCED FOOTER */}
                     <footer className={`bg-[#050507] border-t ${theme.border} pt-16 pb-8 mt-20 relative overflow-hidden`}>
