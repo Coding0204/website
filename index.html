@@ -273,8 +273,6 @@
         // --- DOWNLOAD TOAST COMPONENT ---
         const DownloadToast = ({ message, show, onClose }) => {
             // Note: This component is now managed via plain DOM manipulation in handleDownloadApp
-            // and should not rely on 'show' state from its props for rendering/timing.
-            // However, we keep the structure clean for React.
             const toastId = 'download-toast';
 
             // Function to manually close the toast (called by button click)
@@ -291,7 +289,8 @@
                     <div className="bg-green-600 text-white p-4 rounded-lg shadow-2xl flex items-center justify-between toast-slide-in">
                         <div className="flex items-center">
                             <Check size={20} className="mr-2" />
-                            <span className="text-sm font-medium">{message}</span>
+                            {/* FIX: Added id="toast-message" to allow handleDownloadApp to update the text content */}
+                            <span id="toast-message" className="text-sm font-medium">{message}</span>
                         </div>
                         <button onClick={handleCloseClick} className="text-white/80 hover:text-white transition-colors p-1 -mr-2">
                             <X size={18} />
@@ -317,10 +316,6 @@
             const [showAddModal, setShowAddModal] = useState(false);
             const [addModalTarget, setAddModalTarget] = useState('watchlist'); 
             
-            // Toast state is removed and replaced by direct DOM manipulation for reliability
-            // We keep the toast component rendered below, but manage its visibility outside of React state.
-
-
             // Watchlist State Management
             const [myWatchlist, setMyWatchlist] = useState(() => {
                 try {
