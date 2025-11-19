@@ -5,7 +5,1277 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AniStream - Watch Anime Online</title>
     
+    <!-- Google Fonts --><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AniStream - Powered by HiAnime</title>
+    
     <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Utilities -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .animate-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Glassmorphism utilities */
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* HiAnime branding */
+        .hianime-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-[#0a0a0f] text-slate-100 overflow-x-hidden">
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        import React, { useState, useEffect } from 'https://esm.sh/react@18.2.0';
+        import { createRoot } from 'https://esm.sh/react-dom@18.2.0/client';
+        import { 
+            Play, Info, Plus, Search, Bell, User, Settings, LogOut, ChevronRight, 
+            Star, TrendingUp, Clock, Calendar, Tv, MonitorPlay, MessageSquare, 
+            Share2, Volume2, Maximize, SkipForward, CreditCard, Shield, Globe, 
+            Palette, History, BookOpen, Newspaper, Flame, Check, X, Trash2, Menu,
+            Edit2, Save, Camera, RefreshCw, AlertCircle, RefreshCcw, ExternalLink,
+            Users, Zap, ShieldCheck, Database
+        } from 'https://esm.sh/lucide-react@0.300.0';
+
+        // --- DATA CONSTANTS ---
+        const trendingAnime = [
+            { title: "Demon Slayer: Arc V", genre: "Action, Supernatural", rating: "4.9", image: "https://images.unsplash.com/photo-1542261777421-5f611509350a?q=80&w=1000&auto=format&fit=crop" },
+            { title: "Jujutsu Kaisen 0", genre: "Action, Horror", rating: "4.8", image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=1000&auto=format&fit=crop" },
+            { title: "Spy x Family", genre: "Comedy, Slice of Life", rating: "4.9", image: "https://images.unsplash.com/photo-1607604276583-eef5f07690a5?q=80&w=1000&auto=format&fit=crop" },
+            { title: "Chainsaw Man", genre: "Dark Fantasy", rating: "4.7", image: "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?q=80&w=1000&auto=format&fit=crop" },
+            { title: "One Piece", genre: "Adventure", rating: "5.0", image: "https://images.unsplash.com/photo-1560167016-092131e027c5?q=80&w=1000&auto=format&fit=crop" },
+        ];
+
+        const simulcastAnime = [
+            { title: "Kaiju No. 8", genre: "Sci-Fi", rating: "4.6", image: "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=1000&auto=format&fit=crop" },
+            { title: "Solo Leveling", genre: "Action, Fantasy", rating: "4.9", image: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1000&auto=format&fit=crop" },
+            { title: "Mushoku Tensei", genre: "Isekai", rating: "4.5", image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1000&auto=format&fit=crop" },
+        ];
+
+        const recommendedAnime = [
+            { title: "Cyberpunk: Edgerunners", genre: "Sci-Fi", rating: "4.9", image: "https://images.unsplash.com/photo-1535498730771-e735b998cd64?q=80&w=1000&auto=format&fit=crop" },
+            { title: "Neon Genesis Evangelion", genre: "Mecha, Psychological", rating: "4.8", image: "https://images.unsplash.com/photo-1614728853913-1e221a657804?q=80&w=1000&auto=format&fit=crop" },
+            { title: "Cowboy Bebop", genre: "Space Western", rating: "5.0", image: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=1000&auto=format&fit=crop" },
+        ];
+
+        // HiAnime exclusive content
+        const hianimeExclusive = [
+            { title: "Tokyo Revengers: Final Arc", genre: "Action, Drama", rating: "4.8", image: "https://images.unsplash.com/photo-1635805737707-575885ab0820?q=80&w=1000&auto=format&fit=crop", exclusive: true },
+            { title: "Blue Lock: World Cup", genre: "Sports, Psychological", rating: "4.9", image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=1000&auto=format&fit=crop", exclusive: true },
+            { title: "Chainsaw Man Part 2", genre: "Dark Fantasy", rating: "4.9", image: "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?q=80&w=1000&auto=format&fit=crop", exclusive: true },
+        ];
+
+        // --- THEME CONFIGURATION ---
+        const themeConfig = {
+            dark: { 
+                id: 'dark',
+                bg: 'bg-[#0a0a0f]', 
+                text: 'text-slate-100', 
+                card: 'bg-[#15151a]', 
+                border: 'border-white/5', 
+                nav: 'bg-[#0a0a0f]/95', 
+                subtext: 'text-slate-400',
+                input: 'bg-black/20 border-white/10',
+                buttonSec: 'bg-white/10 hover:bg-white/20 text-white'
+            },
+            light: { 
+                id: 'light',
+                bg: 'bg-slate-50', 
+                text: 'text-slate-900', 
+                card: 'bg-white', 
+                border: 'border-slate-200', 
+                nav: 'bg-white/95', 
+                subtext: 'text-slate-500',
+                input: 'bg-slate-100 border-slate-200',
+                buttonSec: 'bg-slate-200 hover:bg-slate-300 text-slate-900'
+            },
+            midnight: { 
+                id: 'midnight',
+                bg: 'bg-[#0f0518]', 
+                text: 'text-purple-50', 
+                card: 'bg-[#1a0b2e]', 
+                border: 'border-purple-500/20', 
+                nav: 'bg-[#0f0518]/95', 
+                subtext: 'text-purple-300/60',
+                input: 'bg-[#2a1b3e] border-purple-500/20',
+                buttonSec: 'bg-purple-900/40 hover:bg-purple-900/60 text-purple-100'
+            }
+        };
+
+        // --- HELPER COMPONENT: Expandable Title ---
+        const AnimeTitle = ({ title, className = "text-lg", theme }) => {
+            const [expanded, setExpanded] = useState(false);
+            return (
+                <h3
+                    onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+                    className={`${className} font-bold group-hover:text-fuchsia-400 transition-colors pr-2 mb-2 cursor-pointer select-none ${expanded ? '' : 'line-clamp-1'}`}
+                    title={expanded ? "Click to collapse" : "Click to expand"}
+                >
+                    {title}
+                </h3>
+            );
+        };
+
+        // --- MODAL COMPONENT ---
+        const AddAnimeModal = ({ target, onClose, onAdd, theme }) => {
+            const [title, setTitle] = useState('');
+            const [status, setStatus] = useState('watching');
+            
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (!title) return;
+                onAdd({ title, genre: 'Custom Added', status: target === 'history' ? status : undefined });
+            };
+
+            return (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in">
+                    <div className={`${theme.card} ${theme.border} border rounded-2xl p-6 w-11/12 max-w-md shadow-2xl`}>
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className={`text-xl font-bold ${theme.text} flex items-center gap-2`}>
+                                <Plus size={20} className="text-fuchsia-500" /> 
+                                Add to {target === 'watchlist' ? 'Watchlist' : 'History'}
+                            </h2>
+                            <button onClick={onClose} className={`${theme.subtext} hover:text-fuchsia-500 transition-colors`}>
+                                <X size={20} />
+                            </button>
+                        </div>
+                        
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className={`block text-xs font-bold ${theme.subtext} uppercase tracking-wider mb-1.5`}>Anime Title</label>
+                                <input 
+                                    type="text" 
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    placeholder="e.g. Naruto Shippuden"
+                                    className={`w-full ${theme.input} border rounded-lg px-4 py-2.5 ${theme.text} text-sm focus:outline-none focus:border-fuchsia-500/50 transition-colors`}
+                                    autoFocus
+                                />
+                            </div>
+
+                            {target === 'history' && (
+                                <div>
+                                    <label className={`block text-xs font-bold ${theme.subtext} uppercase tracking-wider mb-1.5`}>Status</label>
+                                    <div className="flex gap-3">
+                                        <label className={`flex-1 cursor-pointer p-3 rounded-lg border transition-all text-center text-xs font-bold ${status === 'watching' ? 'bg-fuchsia-600 border-fuchsia-500 text-white shadow-lg shadow-fuchsia-500/20' : `${theme.border} ${theme.subtext} hover:opacity-80`}`}>
+                                            <input type="radio" name="status" value="watching" checked={status === 'watching'} onChange={() => setStatus('watching')} className="hidden" />
+                                            <Play size={14} className="inline mr-1 mb-0.5" /> Continue
+                                        </label>
+                                        <label className={`flex-1 cursor-pointer p-3 rounded-lg border transition-all text-center text-xs font-bold ${status === 'watched' ? 'bg-green-600 border-green-500 text-white shadow-lg shadow-green-500/20' : `${theme.border} ${theme.subtext} hover:opacity-80`}`}>
+                                            <input type="radio" name="status" value="watched" checked={status === 'watched'} onChange={() => setStatus('watched')} className="hidden" />
+                                            <Check size={14} className="inline mr-1 mb-0.5" /> Watched
+                                        </label>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            <div className="pt-4 flex gap-3">
+                                <button 
+                                    type="button" 
+                                    onClick={onClose}
+                                    className={`flex-1 px-4 py-2.5 rounded-lg border ${theme.border} ${theme.subtext} font-bold text-sm hover:opacity-80 transition-colors`}
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    type="submit" 
+                                    className="flex-1 px-4 py-2.5 rounded-lg bg-fuchsia-600 text-white font-bold text-sm hover:bg-fuchsia-500 transition-colors shadow-lg shadow-fuchsia-500/20"
+                                >
+                                    Add Anime
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- WATCH VIEW COMPONENT ---
+        const WatchView = ({ theme }) => {
+            const [currentTime, setCurrentTime] = useState(0);
+            const [duration, setDuration] = useState(1200); // 20 minutes in seconds
+            const [isPlaying, setIsPlaying] = useState(false);
+            const [volume, setVolume] = useState(80);
+            
+            // Simulate video progress
+            useEffect(() => {
+                let interval;
+                if (isPlaying && currentTime < duration) {
+                    interval = setInterval(() => {
+                        setCurrentTime(prev => Math.min(prev + 1, duration));
+                    }, 1000);
+                }
+                return () => clearInterval(interval);
+            }, [isPlaying, currentTime, duration]);
+            
+            const formatTime = (seconds) => {
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            };
+            
+            const handleSeek = (e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                setCurrentTime(Math.floor(percent * duration));
+            };
+            
+            const handleVolumeChange = (e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const percent = (e.clientY - rect.bottom) / (rect.top - rect.bottom);
+                setVolume(Math.floor(percent * 100));
+            };
+            
+            return (
+                <div className={`min-h-screen ${theme.bg} ${theme.text} pt-20`}>
+                    <div className="max-w-7xl mx-auto px-4">
+                        {/* Video Player */}
+                        <div className="relative aspect-video bg-black rounded-xl overflow-hidden mb-6">
+                            {/* Placeholder for video */}
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-900/30 to-fuchsia-900/30">
+                                <div className="text-center">
+                                    <div className="w-20 h-20 rounded-full bg-fuchsia-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-fuchsia-500/30">
+                                        {isPlaying ? (
+                                            <div className="flex gap-1">
+                                                <div className="w-2 h-6 bg-white rounded-sm"></div>
+                                                <div className="w-2 h-6 bg-white rounded-sm"></div>
+                                            </div>
+                                        ) : (
+                                            <Play size={24} className="fill-white text-white ml-1" />
+                                        )}
+                                    </div>
+                                    <p className="text-white font-medium">AniStream Player</p>
+                                    <p className="text-slate-300 text-sm mt-1">Now Playing: Void Walker Eclipse</p>
+                                    <div className="mt-2 inline-flex items-center px-2 py-1 rounded bg-purple-600/30 text-purple-300 text-xs">
+                                        <Zap size={12} className="mr-1" /> Powered by HiAnime
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {/* Video Controls Overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity flex flex-col justify-end p-6">
+                                {/* Progress Bar */}
+                                <div className="mb-4">
+                                    <div 
+                                        className="w-full h-1 bg-white/30 rounded-full cursor-pointer"
+                                        onClick={handleSeek}
+                                    >
+                                        <div 
+                                            className="h-full bg-fuchsia-600 rounded-full relative"
+                                            style={{ width: `${(currentTime / duration) * 100}%` }}
+                                        >
+                                            <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow"></div>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between text-xs text-white mt-1">
+                                        <span>{formatTime(currentTime)}</span>
+                                        <span>{formatTime(duration)}</span>
+                                    </div>
+                                </div>
+                                
+                                {/* Control Buttons */}
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <button 
+                                            onClick={() => setIsPlaying(!isPlaying)}
+                                            className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-black hover:bg-slate-200 transition-colors"
+                                        >
+                                            {isPlaying ? (
+                                                <div className="flex gap-1">
+                                                    <div className="w-1 h-3 bg-black rounded-sm"></div>
+                                                    <div className="w-1 h-3 bg-black rounded-sm"></div>
+                                                </div>
+                                            ) : (
+                                                <Play size={16} className="fill-black text-black ml-0.5" />
+                                            )}
+                                        </button>
+                                        
+                                        <button className="text-white hover:text-slate-300 transition-colors">
+                                            <SkipForward size={20} />
+                                        </button>
+                                        
+                                        {/* Volume Control */}
+                                        <div className="flex items-center gap-2">
+                                            <button className="text-white hover:text-slate-300 transition-colors">
+                                                <Volume2 size={20} />
+                                            </button>
+                                            <div 
+                                                className="w-20 h-1 bg-white/30 rounded-full cursor-pointer relative"
+                                                onClick={handleVolumeChange}
+                                            >
+                                                <div 
+                                                    className="h-full bg-white rounded-full"
+                                                    style={{ width: `${volume}%` }}
+                                                ></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-4">
+                                        <button className="text-white hover:text-slate-300 transition-colors">
+                                            <Maximize size={20} />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {/* Episode Info */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div className="lg:col-span-2">
+                                <h1 className="text-2xl font-bold mb-2">Void Walker: Eclipse - Episode 1</h1>
+                                <p className="text-slate-300 mb-4">
+                                    When the stars begin to vanish, a lone drifter must navigate the edge of the known universe to uncover a conspiracy that threatens existence itself.
+                                </p>
+                                
+                                <div className="flex flex-wrap gap-2 mb-6">
+                                    <span className="px-3 py-1 bg-fuchsia-600/20 text-fuchsia-400 rounded-full text-sm font-medium">Sci-Fi</span>
+                                    <span className="px-3 py-1 bg-cyan-600/20 text-cyan-400 rounded-full text-sm font-medium">Mystery</span>
+                                    <span className="px-3 py-1 bg-purple-600/20 text-purple-400 rounded-full text-sm font-medium">Action</span>
+                                    <span className="px-3 py-1 hianime-gradient text-white rounded-full text-sm font-medium flex items-center">
+                                        <ShieldCheck size={12} className="mr-1" /> HiAnime Exclusive
+                                    </span>
+                                </div>
+                                
+                                <div className="flex items-center gap-4 text-sm text-slate-400">
+                                    <div className="flex items-center gap-1">
+                                        <Star size={16} className="text-yellow-500 fill-yellow-500" />
+                                        <span>4.9</span>
+                                    </div>
+                                    <div>•</div>
+                                    <div>TV Series</div>
+                                    <div>•</div>
+                                    <div>2025</div>
+                                </div>
+                            </div>
+                            
+                            <div className="space-y-4">
+                                <h3 className="font-bold text-lg">Episodes</h3>
+                                <div className="space-y-2 max-h-80 overflow-y-auto">
+                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(ep => (
+                                        <div 
+                                            key={ep}
+                                            className={`p-3 rounded-lg cursor-pointer transition-colors ${ep === 1 ? 'bg-fuchsia-600/20 border border-fuchsia-500/30' : `${theme.card} border ${theme.border} hover:border-fuchsia-500/30`}`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`w-8 h-8 rounded flex items-center justify-center ${ep === 1 ? 'bg-fuchsia-600' : 'bg-white/10'}`}>
+                                                        <Play size={14} className={ep === 1 ? 'fill-white text-white' : 'text-slate-300'} />
+                                                    </div>
+                                                    <span className={ep === 1 ? 'text-white font-medium' : theme.text}>Episode {ep}</span>
+                                                </div>
+                                                {ep === 1 && (
+                                                    <span className="text-xs bg-fuchsia-600 px-2 py-1 rounded">Playing</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- MAIN APP COMPONENT ---
+        const AniStream = () => {
+            const [scrolled, setScrolled] = useState(false);
+            const [activeTab, setActiveTab] = useState('home');
+            const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+            const [searchQuery, setSearchQuery] = useState('');
+            
+            // Theme State
+            const [themeMode, setThemeMode] = useState('dark');
+            const theme = themeConfig[themeMode];
+
+            // Modal State
+            const [showAddModal, setShowAddModal] = useState(false);
+            const [addModalTarget, setAddModalTarget] = useState('watchlist'); 
+
+            // Watchlist State Management
+            const [myWatchlist, setMyWatchlist] = useState(() => {
+                try {
+                    const saved = localStorage.getItem('aniStream_watchlist');
+                    return saved ? JSON.parse(saved) : [];
+                } catch(e) { return [] }
+            });
+
+            // Watch History State Management
+            const [watchHistory, setWatchHistory] = useState(() => {
+                try {
+                    const saved = localStorage.getItem('aniStream_history');
+                    if (saved) return JSON.parse(saved);
+                } catch(e) {}
+                
+                return [
+                    { title: "Cyber Samurai 2099", ep: 12, time: "12m left", percent: 65, date: "Just now", image: trendingAnime[0].image },
+                    { title: "Spy x Family", ep: 24, time: "Completed", percent: 100, date: "2 hours ago", image: trendingAnime[2].image },
+                    { title: "Chainsaw Man", ep: 8, time: "3m left", percent: 85, date: "Yesterday", image: trendingAnime[3].image },
+                    { title: "Kaiju No. 8", ep: 5, time: "18m left", percent: 15, date: "3 days ago", image: simulcastAnime[0].image },
+                    { title: "One Piece", ep: 1092, time: "Completed", percent: 100, date: "Last Week", image: trendingAnime[4].image },
+                ];
+            });
+
+            // User Profile State Management
+            const [user, setUser] = useState(() => {
+                try {
+                    const saved = localStorage.getItem('aniStream_user');
+                    if (saved) return JSON.parse(saved);
+                } catch(e) {}
+                
+                return {
+                    name: "Kaito Nakamura",
+                    handle: "@kai_otaku",
+                    avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=Felix&backgroundColor=b6e3f4",
+                    plan: "Premium Ronin",
+                    level: 42
+                };
+            });
+
+            // Effects to Save Data
+            useEffect(() => { localStorage.setItem('aniStream_watchlist', JSON.stringify(myWatchlist)); }, [myWatchlist]);
+            useEffect(() => { localStorage.setItem('aniStream_history', JSON.stringify(watchHistory)); }, [watchHistory]);
+            useEffect(() => { localStorage.setItem('aniStream_user', JSON.stringify(user)); }, [user]);
+
+            // RESET FUNCTION
+            const resetAppData = () => {
+                if(confirm("Are you sure you want to reset all app data? This will clear your watchlist and history.")) {
+                    localStorage.removeItem('aniStream_watchlist');
+                    localStorage.removeItem('aniStream_history');
+                    localStorage.removeItem('aniStream_user');
+                    window.location.reload();
+                }
+            };
+
+            const toggleWatchlist = (anime) => {
+                const exists = myWatchlist.find(item => item.title === anime.title);
+                if (exists) {
+                    setMyWatchlist(myWatchlist.filter(item => item.title !== anime.title));
+                } else {
+                    setMyWatchlist([...myWatchlist, anime]);
+                }
+            };
+
+            const isInWatchlist = (anime) => myWatchlist.some(item => item.title === anime.title);
+            const clearHistory = () => setWatchHistory([]);
+
+            const removeFromHistory = (anime) => {
+                setWatchHistory(prev => prev.filter(item => item.title !== anime.title));
+            };
+
+            const updateUser = (updatedData) => {
+                setUser(prev => ({ ...prev, ...updatedData }));
+            };
+
+            const handleOpenAddModal = (target) => {
+                setAddModalTarget(target);
+                setShowAddModal(true);
+            };
+
+            const handleAddEntry = (entry) => {
+                let percent = 0;
+                let time = "Just started";
+
+                if (entry.status === 'watched') {
+                    percent = 100;
+                    time = "Completed";
+                } else if (entry.status === 'watching') {
+                    percent = 45; 
+                    time = "Ep 12 left";
+                }
+
+                const newAnime = {
+                    ...entry,
+                    rating: "0.0",
+                    image: `https://images.unsplash.com/photo-1569701813229-33284b6436bc?q=80&w=1000&auto=format&fit=crop`,
+                    ep: 1,
+                    time: time,
+                    percent: percent,
+                    date: "Just now"
+                };
+
+                if (addModalTarget === 'watchlist') {
+                    if (!myWatchlist.some(i => i.title === newAnime.title)) {
+                        setMyWatchlist([newAnime, ...myWatchlist]);
+                    }
+                } else {
+                    setWatchHistory([newAnime, ...watchHistory]);
+                }
+                setShowAddModal(false);
+            };
+
+            const handleSearchInput = (e) => {
+                const query = e.target.value;
+                setSearchQuery(query);
+                if (query.trim() !== '') {
+                    setActiveTab('search');
+                } else if (activeTab === 'search') {
+                    setActiveTab('home'); 
+                }
+            };
+
+            const handleNavClick = (tab) => {
+                setActiveTab(tab);
+                setMobileMenuOpen(false);
+                setSearchQuery(''); 
+            };
+
+            useEffect(() => {
+                const handleScroll = () => setScrolled(window.scrollY > 50);
+                window.addEventListener('scroll', handleScroll);
+                return () => window.removeEventListener('scroll', handleScroll);
+            }, []);
+
+            const renderContent = () => {
+                switch (activeTab) {
+                    case 'home': return <HomeView onNavigate={handleNavClick} onToggle={toggleWatchlist} checkList={isInWatchlist} theme={theme} />;
+                    case 'browse': return <BrowseView onNavigate={handleNavClick} onToggle={toggleWatchlist} checkList={isInWatchlist} theme={theme} />;
+                    case 'search': return <SearchView query={searchQuery} onNavigate={handleNavClick} onToggle={toggleWatchlist} checkList={isInWatchlist} theme={theme} />;
+                    case 'profile': return <ProfileView user={user} onUpdate={updateUser} onNavigate={handleNavClick} onReset={resetAppData} theme={theme} onThemeChange={setThemeMode} />;
+                    case 'watch': return <WatchView theme={theme} />;
+                    case 'watchlist': return <WatchlistView onNavigate={handleNavClick} watchlist={myWatchlist} onToggle={toggleWatchlist} onAdd={() => handleOpenAddModal('watchlist')} theme={theme} />;
+                    case 'watched': return <WatchedView onNavigate={handleNavClick} history={watchHistory} onClear={clearHistory} onRemove={removeFromHistory} onAdd={() => handleOpenAddModal('history')} theme={theme} />;
+                    case 'hianime': return <HiAnimeView onNavigate={handleNavClick} onToggle={toggleWatchlist} checkList={isInWatchlist} theme={theme} />;
+                    default: return <HomeView onNavigate={handleNavClick} onToggle={toggleWatchlist} checkList={isInWatchlist} theme={theme} />;
+                }
+            };
+
+            return (
+                <div className={`min-h-screen ${theme.bg} ${theme.text} font-sans selection:bg-fuchsia-500/30 overflow-x-hidden relative transition-colors duration-300`}>
+                    
+                    {/* Navigation Bar */}
+                    <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? `${theme.nav} backdrop-blur-md border-b ${theme.border} py-3` : 'bg-gradient-to-b from-black/80 to-transparent py-5'}`}>
+                        <div className="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between">
+                            <div className="flex items-center gap-4 md:gap-8">
+                                <button className={`md:hidden ${theme.subtext} hover:text-fuchsia-500`} onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+                                    {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                                </button>
+
+                                {/* Logo and Name - Now decorative only, not clickable */}
+                                <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 rounded bg-gradient-to-br from-fuchsia-600 to-cyan-500 flex items-center justify-center shadow-[0_0_15px_rgba(217,70,239,0.5)]">
+                                        <Play size={14} className="fill-white text-white ml-0.5" />
+                                    </div>
+                                    <span className={`text-lg md:text-xl font-black tracking-tight ${scrolled ? theme.text : 'text-white'} uppercase italic`}>Ani<span className="text-cyan-400">Stream</span></span>
+                                    <div className="hidden md:flex items-center px-2 py-1 rounded-full bg-purple-600/20 text-purple-300 text-xs font-bold">
+                                        <Zap size={10} className="mr-1" /> HiAnime
+                                    </div>
+                                </div>
+                                
+                                <div className={`hidden md:flex items-center gap-6 text-sm font-bold ${scrolled ? theme.subtext : 'text-slate-300'}`}>
+                                    <NavLink label="Home" active={activeTab === 'home'} onClick={() => handleNavClick('home')} theme={theme} scrolled={scrolled} />
+                                    <NavLink label="Browse" active={activeTab === 'browse'} onClick={() => handleNavClick('browse')} theme={theme} scrolled={scrolled} />
+                                    <NavLink label="HiAnime" active={activeTab === 'hianime'} onClick={() => handleNavClick('hianime')} theme={theme} scrolled={scrolled} />
+                                    <NavLink label="Watchlist" active={activeTab === 'watchlist'} onClick={() => handleNavClick('watchlist')} theme={theme} scrolled={scrolled} />
+                                    <NavLink label="History" active={activeTab === 'watched'} onClick={() => handleNavClick('watched')} theme={theme} scrolled={scrolled} />
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-3 md:gap-5">
+                                <div className={`hidden md:flex items-center ${theme.input} rounded-full px-3 py-1.5 focus-within:border-fuchsia-500/50 focus-within:ring-1 focus-within:ring-fuchsia-500/20 transition-all group`}>
+                                    <Search size={16} className={`${theme.subtext} group-focus-within:text-fuchsia-400`} />
+                                    <input 
+                                        type="text" 
+                                        placeholder="Search anime..." 
+                                        className={`bg-transparent border-none focus:ring-0 text-sm ${theme.text} w-24 lg:w-32 group-focus-within:w-48 transition-all placeholder:${theme.subtext} outline-none ml-2`} 
+                                        value={searchQuery}
+                                        onChange={handleSearchInput}
+                                    />
+                                    {searchQuery && <button onClick={() => { setSearchQuery(''); if(activeTab === 'search') handleNavClick('home'); }}><X size={14} className={`${theme.subtext} hover:text-fuchsia-500`} /></button>}
+                                </div>
+                                <button className={`relative ${scrolled ? theme.subtext : 'text-slate-300'} hover:text-fuchsia-500 transition-colors`}>
+                                    <Bell size={20} />
+                                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-fuchsia-500 rounded-full animate-pulse"></span>
+                                </button>
+                                <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => handleNavClick('profile')}>
+                                    <img src={user.avatar} alt="User" className={`w-8 h-8 rounded-lg ring-2 transition-all ${activeTab === 'profile' ? 'ring-fuchsia-500' : 'ring-transparent'}`} />
+                                </div>
+                            </div>
+                        </div>
+                    </nav>
+
+                    {/* Mobile Menu Overlay */}
+                    {mobileMenuOpen && (
+                        <div className={`fixed inset-0 z-40 ${theme.bg} pt-20 px-6 md:hidden animate-in flex flex-col`}>
+                            
+                            {/* Mobile Search Input */}
+                            <div className={`flex items-center ${theme.input} rounded-lg px-4 py-3 mb-6 focus-within:border-fuchsia-500/50 focus-within:ring-1 focus-within:ring-fuchsia-500/20 transition-all`}>
+                                <Search size={18} className={`${theme.subtext}`} />
+                                <input 
+                                    type="text" 
+                                    placeholder="Search anime..." 
+                                    className={`bg-transparent border-none focus:ring-0 text-base ${theme.text} w-full ml-3 placeholder:${theme.subtext} outline-none`} 
+                                    value={searchQuery}
+                                    onChange={handleSearchInput}
+                                />
+                                {searchQuery && <button onClick={() => { setSearchQuery(''); }}><X size={18} className={`${theme.subtext}`} /></button>}
+                            </div>
+
+                            <div className={`flex flex-col gap-6 text-xl font-bold ${theme.subtext}`}>
+                                <span onClick={() => handleNavClick('home')} className={activeTab === 'home' ? 'text-fuchsia-400' : ''}>Home</span>
+                                <span onClick={() => handleNavClick('browse')} className={activeTab === 'browse' ? 'text-fuchsia-400' : ''}>Browse</span>
+                                <span onClick={() => handleNavClick('hianime')} className={activeTab === 'hianime' ? 'text-fuchsia-400' : ''}>HiAnime</span>
+                                <span onClick={() => handleNavClick('watchlist')} className={activeTab === 'watchlist' ? 'text-fuchsia-400' : ''}>Watchlist</span>
+                                <span onClick={() => handleNavClick('watched')} className={activeTab === 'watched' ? 'text-fuchsia-400' : ''}>History</span>
+                                <span onClick={() => handleNavClick('profile')} className={activeTab === 'profile' ? 'text-fuchsia-400' : ''}>Profile Settings</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Main Content */}
+                    <main className="pt-0 min-h-screen">
+                        {renderContent()}
+                    </main>
+
+                    {/* Add Anime Modal */}
+                    {showAddModal && (
+                        <AddAnimeModal 
+                            target={addModalTarget} 
+                            onClose={() => setShowAddModal(false)} 
+                            onAdd={handleAddEntry} 
+                            theme={theme}
+                        />
+                    )}
+
+                    {/* Footer */}
+                    <footer className={`bg-[#050507] border-t ${theme.border} pt-16 pb-8 mt-20`}>
+                        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
+                            <div>
+                                <h3 className="text-lg font-black italic text-white mb-4">Ani<span className="text-cyan-400">Stream</span></h3>
+                                <p className="text-slate-500 text-sm leading-relaxed mb-3">
+                                    The world's largest anime collection. Stream simulcasts straight from Japan in 4K.
+                                </p>
+                                <div className="flex items-center text-purple-400 text-sm">
+                                    <Zap size={14} className="mr-1" /> Powered by HiAnime
+                                </div>
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-white mb-4">Navigation</h4>
+                                <ul className="space-y-2 text-sm text-slate-400">
+                                    <li className="hover:text-fuchsia-400 cursor-pointer" onClick={() => handleNavClick('browse')}>Browse Popular</li>
+                                    <li className="hover:text-fuchsia-400 cursor-pointer" onClick={() => handleNavClick('hianime')}>HiAnime Exclusives</li>
+                                    <li className="hover:text-fuchsia-400 cursor-pointer" onClick={() => handleNavClick('watched')}>Watch History</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-white mb-4">Account</h4>
+                                <ul className="space-y-2 text-sm text-slate-400">
+                                    <li className="hover:text-fuchsia-400 cursor-pointer" onClick={() => handleNavClick('watchlist')}>My Watchlist</li>
+                                    <li className="hover:text-fuchsia-400 cursor-pointer">Redeem Code</li>
+                                    <li className="hover:text-fuchsia-400 cursor-pointer">Gift Cards</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-white mb-4">Connect</h4>
+                                <div className="flex gap-4">
+                                    <SocialIcon icon={<Globe size={18} />} />
+                                    <SocialIcon icon={<Share2 size={18} />} />
+                                    <SocialIcon icon={<MessageSquare size={18} />} />
+                                </div>
+                                <div className="mt-4">
+                                    <a href="https://hianime.to" target="_blank" className="inline-flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-colors text-sm">
+                                        <ExternalLink size={14} /> Visit HiAnime.to
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div className={`text-center text-slate-600 text-xs border-t ${theme.border} pt-8`}>
+                            © 2025 AniStream LLC. All rights reserved. In partnership with HiAnime.
+                        </div>
+                    </footer>
+                </div>
+            );
+        };
+
+        // --- SUB-COMPONENTS ---
+
+        // HiAnime Exclusive View
+        const HiAnimeView = ({ onNavigate, onToggle, checkList, theme }) => {
+            return (
+                <div className="pt-24 px-6 max-w-7xl mx-auto animate-in">
+                    {/* HiAnime Hero Section */}
+                    <div className="mb-12 rounded-2xl overflow-hidden relative">
+                        <div className="hianime-gradient p-8 md:p-12 text-white">
+                            <div className="max-w-3xl">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                                        <Zap size={20} className="text-white" />
+                                    </div>
+                                    <h1 className="text-3xl md:text-4xl font-black">HiAnime Exclusives</h1>
+                                </div>
+                                <p className="text-purple-100 text-lg mb-6">
+                                    Access the largest anime library with exclusive titles only available through our partnership with HiAnime. 
+                                    Enjoy ad-free streaming, highest quality video, and early access to new episodes.
+                                </p>
+                                <div className="flex flex-wrap gap-4">
+                                    <div className="flex items-center gap-2">
+                                        <ShieldCheck size={16} className="text-white" />
+                                        <span className="text-sm">Ad-Free Experience</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Database size={16} className="text-white" />
+                                        <span className="text-sm">10,000+ Titles</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Users size={16} className="text-white" />
+                                        <span className="text-sm">2M+ Community</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-12 pb-20">
+                        <ContentRow 
+                            title="HiAnime Exclusives" 
+                            items={hianimeExclusive} 
+                            onToggle={onToggle} 
+                            checkList={checkList} 
+                            theme={theme} 
+                            showExclusiveBadge={true}
+                        />
+                        <ContentRow title="Trending on HiAnime" items={trendingAnime} onToggle={onToggle} checkList={checkList} theme={theme} />
+                        <ContentRow title="New Simulcasts" items={simulcastAnime} onToggle={onToggle} checkList={checkList} theme={theme} />
+                    </div>
+                </div>
+            );
+        };
+
+        const SearchView = ({ query, onNavigate, onToggle, checkList, theme }) => {
+            const allAnime = [...trendingAnime, ...simulcastAnime, ...recommendedAnime, ...hianimeExclusive];
+            const results = allAnime.filter(item => item.title.toLowerCase().includes(query.toLowerCase()));
+
+            return (
+                <div className="pt-24 px-6 max-w-7xl mx-auto animate-in">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+                        <div>
+                            <h1 className={`text-3xl font-bold ${theme.text} flex items-center gap-3`}>
+                                <Search className="text-cyan-400" /> Search Results
+                            </h1>
+                            <p className={`${theme.subtext} mt-2`}>Found {results.length} results for "{query}"</p>
+                        </div>
+                    </div>
+
+                    {results.length > 0 ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                            {results.map((anime, idx) => (
+                                <AnimeCard key={idx} item={anime} title={anime.title} genre={anime.genre} image={anime.image} rating={anime.rating} onNavigate={onNavigate} onToggle={onToggle} isAdded={checkList(anime)} theme={theme} exclusive={anime.exclusive} />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className={`flex flex-col items-center justify-center py-32 text-center border border-dashed ${theme.border} rounded-2xl bg-white/5`}>
+                            <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mb-4"><AlertCircle size={32} className="text-slate-500" /></div>
+                            <h3 className={`text-xl font-bold ${theme.text} mb-2`}>No matches found</h3>
+                            <p className={`${theme.subtext} mb-6 max-w-md`}>Try searching for something else like "Demon Slayer" or "One Piece".</p>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const HomeView = ({ onNavigate, onToggle, checkList, theme }) => {
+            const heroAnime = { title: "Void Walker: Eclipse", genre: "Sci-Fi, Mystery", image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1000&auto=format&fit=crop", rating: "4.9", exclusive: true };
+            const isHeroAdded = checkList(heroAnime);
+
+            return (
+            <div className="animate-in">
+                {/* Hero Section */}
+                <div className="relative min-h-[70vh] md:h-[85vh] w-full overflow-hidden flex items-end md:block">
+                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1000&auto=format&fit=crop')] bg-cover bg-center">
+                        <div className={`absolute inset-0 bg-gradient-to-r ${theme.id === 'light' ? 'from-white' : 'from-[#0a0a0f]'} ${theme.id === 'light' ? 'via-white/60' : 'via-[#0a0a0f]/60'} to-transparent`}></div>
+                        <div className={`absolute inset-0 bg-gradient-to-t ${theme.id === 'light' ? 'from-white' : 'from-[#0a0a0f]'} ${theme.id === 'light' ? 'via-white/20' : 'via-[#0a0a0f]/20'} to-transparent`}></div>
+                    </div>
+
+                    <div className="relative z-10 w-full p-6 md:p-16 pb-24 md:absolute md:bottom-0 md:left-0">
+                        <div className="max-w-3xl space-y-4 md:space-y-6">
+                            <div className="flex items-center gap-3 animate-in" style={{animationDelay: '0.1s'}}>
+                                <span className="px-2 py-0.5 bg-fuchsia-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-sm">World Premiere</span>
+                                <span className="px-2 py-0.5 bg-purple-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-sm flex items-center">
+                                    <Zap size={10} className="mr-1" /> HiAnime Exclusive
+                                </span>
+                                <span className="hidden sm:inline px-2 py-0.5 bg-white/10 backdrop-blur text-white text-[10px] font-bold uppercase tracking-wider rounded-sm border border-white/10">Sub | Dub</span>
+                                <div className="flex text-yellow-400">
+                                    <Star size={12} className="fill-yellow-400" /><Star size={12} className="fill-yellow-400" /><Star size={12} className="fill-yellow-400" /><Star size={12} className="fill-yellow-400" /><Star size={12} className="fill-yellow-400" />
+                                </div>
+                            </div>
+                            
+                            <h1 className={`text-3xl sm:text-5xl lg:text-7xl font-black ${theme.id === 'light' ? 'text-slate-900' : 'text-white'} leading-tight italic uppercase tracking-tighter drop-shadow-2xl animate-in`} style={{animationDelay: '0.2s'}}>
+                                Void Walker <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-fuchsia-500">Eclipse</span>
+                            </h1>
+                            
+                            <p className={`text-sm sm:text-base md:text-lg ${theme.id === 'light' ? 'text-slate-600' : 'text-slate-300'} line-clamp-3 md:line-clamp-2 max-w-2xl animate-in`} style={{animationDelay: '0.3s'}}>
+                                When the stars begin to vanish, a lone drifter must navigate the edge of the known universe to uncover a conspiracy that threatens existence itself.
+                            </p>
+                            
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-2 md:pt-4 animate-in" style={{animationDelay: '0.4s'}}>
+                                <button className="w-full sm:w-auto px-8 py-3.5 bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-bold uppercase tracking-wide rounded flex items-center justify-center sm:justify-start gap-2 transition-all hover:scale-105 hover:shadow-[0_0_25px_rgba(217,70,239,0.4)]">
+                                    <Play size={20} className="fill-white" /> Watch S1 E1
+                                </button>
+                                <button className={`w-full sm:w-auto px-8 py-3.5 backdrop-blur font-bold uppercase tracking-wide rounded flex items-center justify-center sm:justify-start gap-2 transition-all border ${isHeroAdded ? 'bg-white text-black border-white' : 'bg-white/10 hover:bg-white/20 text-white border-white/10'}`} onClick={() => onToggle(heroAnime)}>
+                                    {isHeroAdded ? <Check size={20} /> : <Plus size={20} />} {isHeroAdded ? 'Added' : 'My List'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="-mt-20 relative z-10 space-y-12 pb-20 px-6">
+                    <ContentRow title="HiAnime Exclusives" items={hianimeExclusive} onToggle={onToggle} checkList={checkList} theme={theme} showExclusiveBadge={true} />
+                    <ContentRow title="Trending Now" items={trendingAnime} onToggle={onToggle} checkList={checkList} theme={theme} />
+                    <ContentRow title="New Simulcasts" items={simulcastAnime} onToggle={onToggle} checkList={checkList} theme={theme} />
+                    <ContentRow title="Recommended for You" items={recommendedAnime} onToggle={onToggle} checkList={checkList} theme={theme} />
+                </div>
+            </div>
+            );
+        };
+
+        const WatchlistView = ({ onNavigate, watchlist, onToggle, onAdd, theme }) => (
+            <div className="pt-24 px-6 max-w-7xl mx-auto animate-in">
+                <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+                    <div>
+                        <h1 className={`text-3xl font-bold ${theme.text} flex items-center gap-3`}><Check className="text-fuchsia-400" /> My Watchlist</h1>
+                        <p className={`${theme.subtext} mt-2`}>{watchlist.length} series saved for later.</p>
+                    </div>
+                    <div className="flex gap-2">
+                        <button onClick={onAdd} className={`px-4 py-2 ${theme.buttonSec} rounded-lg text-sm font-bold transition-colors flex items-center gap-2`}><Plus size={16} /> Add Anime</button>
+                        <button className={`px-4 py-2 ${theme.border} border ${theme.text} rounded-lg text-sm font-bold transition-colors hover:bg-white/5`}>Sort by Date</button>
+                    </div>
+                </div>
+                {watchlist.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {watchlist.map((anime, idx) => (
+                            <div key={idx} className={`relative group p-5 rounded-xl ${theme.card} border ${theme.border} hover:border-fuchsia-500/30 transition-all cursor-default flex flex-col justify-between h-full`}>
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <AnimeTitle title={anime.title} theme={theme} />
+                                        <div className={`flex items-center gap-2 text-sm ${theme.subtext}`}>
+                                            <span className="bg-white/5 px-2 py-0.5 rounded text-xs">{anime.genre || 'Anime'}</span>
+                                            <span className="flex items-center gap-1"><Star size={12} className="text-yellow-500 fill-yellow-500" /> {anime.rating}</span>
+                                            {anime.exclusive && (
+                                                <span className="px-1.5 py-0.5 bg-purple-600/20 text-purple-400 rounded text-[10px] font-bold">EXCLUSIVE</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <button onClick={(e) => { e.stopPropagation(); onToggle(anime); }} className={`${theme.subtext} hover:text-red-400 transition-colors p-1 -mr-2 -mt-2`}><X size={18} /></button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className={`flex flex-col items-center justify-center py-32 text-center border border-dashed ${theme.border} rounded-2xl bg-white/5`}>
+                        <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mb-4"><Plus size={32} className="text-slate-500" /></div>
+                        <h3 className={`text-xl font-bold ${theme.text} mb-2`}>Your list is empty</h3>
+                        <button onClick={() => onNavigate('browse')} className="px-6 py-2.5 bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-bold rounded transition-colors">Browse Anime</button>
+                    </div>
+                )}
+            </div>
+        );
+
+        const WatchedView = ({ onNavigate, history, onClear, onAdd, onRemove, theme }) => {
+            const [filter, setFilter] = useState('all');
+            const continueWatching = history.filter(item => item.percent < 100);
+            const finished = history.filter(item => item.percent === 100);
+
+            return (
+                <div className="pt-24 px-6 max-w-7xl mx-auto animate-in">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+                        <h1 className={`text-3xl font-bold ${theme.text} flex items-center gap-3`}><History className="text-cyan-400" /> Watch History</h1>
+                        <div className="flex gap-3">
+                            <button onClick={onAdd} className={`flex items-center gap-2 px-4 py-2 ${theme.buttonSec} rounded-lg text-sm font-bold transition-colors`}><Plus size={16} /> <span className="hidden sm:inline">Add Anime</span></button>
+                            <button onClick={onClear} className="flex items-center gap-2 px-4 py-2 border border-red-900/50 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-lg text-sm font-bold uppercase transition-colors"><Trash2 size={16} /> Clear</button>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide">
+                        <button onClick={() => setFilter('all')} className={`px-4 py-2 rounded-full text-sm font-bold transition-colors whitespace-nowrap ${filter === 'all' ? 'bg-fuchsia-600 text-white' : `${theme.buttonSec}`}`}>All Activity</button>
+                        <button onClick={() => setFilter('continue')} className={`px-4 py-2 rounded-full text-sm font-bold transition-colors whitespace-nowrap ${filter === 'continue' ? 'bg-fuchsia-600 text-white' : `${theme.buttonSec}`}`}>Continue Watching</button>
+                        <button onClick={() => setFilter('completed')} className={`px-4 py-2 rounded-full text-sm font-bold transition-colors whitespace-nowrap ${filter === 'completed' ? 'bg-fuchsia-600 text-white' : `${theme.buttonSec}`}`}>Completed</button>
+                    </div>
+
+                    {history.length > 0 ? (
+                        <div className="animate-in">
+                            {filter === 'all' && (
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                                    {/* Continue Watching Column */}
+                                    <div>
+                                        <h2 className={`text-lg font-bold ${theme.subtext} mb-4 uppercase tracking-wider flex items-center gap-2 pb-2 border-b ${theme.border}`}>
+                                            <Play size={16} className="text-fuchsia-500" /> Continue Watching
+                                            <span className="ml-auto text-xs opacity-50 bg-white/10 px-2 py-0.5 rounded-full">{continueWatching.length}</span>
+                                        </h2>
+                                        <div className="space-y-3">
+                                            {continueWatching.length > 0 ? (
+                                        continueWatching.map((item, idx) => (
+                                            <HistoryCard key={`cont-${idx}`} item={item} onNavigate={onNavigate} onRemove={onRemove} theme={theme} index={idx + 1} />
+                                        ))
+                                    ) : (
+                                        <div className={`p-8 border border-dashed ${theme.border} rounded-xl text-center`}>
+                                                    <p className={`${theme.subtext} text-sm`}>No shows in progress.</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Completed Column */}
+                                    <div>
+                                        <h2 className={`text-lg font-bold ${theme.subtext} mb-4 uppercase tracking-wider flex items-center gap-2 pb-2 border-b ${theme.border}`}>
+                                            <Check size={16} className="text-green-500" /> Completed
+                                            <span className="ml-auto text-xs opacity-50 bg-white/10 px-2 py-0.5 rounded-full">{finished.length}</span>
+                                        </h2>
+                                        <div className="space-y-3">
+                                            {finished.length > 0 ? (
+                                        finished.map((item, idx) => (
+                                            <HistoryCard key={`fin-${idx}`} item={item} onNavigate={onNavigate} onRemove={onRemove} theme={theme} index={idx + 1} />
+                                        ))
+                                    ) : (
+                                        <div className={`p-8 border border-dashed ${theme.border} rounded-xl text-center`}>
+                                                    <p className={`${theme.subtext} text-sm`}>No completed shows yet.</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {filter === 'continue' && (
+                                <div>
+                                     <h2 className={`text-lg font-bold ${theme.subtext} mb-4 uppercase tracking-wider flex items-center gap-2`}>
+                                        <Play size={16} className="text-fuchsia-500" /> Continue Watching ({continueWatching.length})
+                                    </h2>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {continueWatching.map((item, idx) => (
+                                            <HistoryCard key={`cont-filter-${idx}`} item={item} onNavigate={onNavigate} onRemove={onRemove} theme={theme} index={idx + 1} />
+                                        ))}
+                                    </div>
+                                    {continueWatching.length === 0 && (
+                                        <div className={`p-12 border border-dashed ${theme.border} rounded-xl text-center`}>
+                                            <p className={`${theme.subtext}`}>You have no active shows.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {filter === 'completed' && (
+                                <div>
+                                    <h2 className={`text-lg font-bold ${theme.subtext} mb-4 uppercase tracking-wider flex items-center gap-2`}>
+                                        <Check size={16} className="text-green-500" /> Completed ({finished.length})
+                                    </h2>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {finished.map((item, idx) => (
+                                            <HistoryCard key={`fin-filter-${idx}`} item={item} onNavigate={onNavigate} onRemove={onRemove} theme={theme} index={idx + 1} />
+                                        ))}
+                                    </div>
+                                    {finished.length === 0 && (
+                                        <div className={`p-12 border border-dashed ${theme.border} rounded-xl text-center`}>
+                                            <p className={`${theme.subtext}`}>You haven't finished any shows yet.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className={`flex flex-col items-center justify-center py-20 text-center border border-dashed ${theme.border} rounded-2xl bg-white/5`}>
+                            <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mb-3 text-slate-500"><History size={24} /></div>
+                            <p className={theme.subtext}>No watch history yet.</p>
+                            <button onClick={() => onNavigate('home')} className="mt-4 text-fuchsia-400 hover:text-fuchsia-300 text-sm font-bold">Start Watching</button>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const HistoryCard = ({ item, onNavigate, onRemove, theme, index }) => {
+            return (
+                <div className={`p-5 rounded-xl ${theme.card} border ${theme.border} hover:border-fuchsia-500/30 group transition-all cursor-default`} onClick={() => onNavigate('watch')}>
+                    <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-1">
+                                {index && <span className={`text-sm font-mono font-bold ${theme.subtext} opacity-50 mr-1`}>#{index}</span>}
+                                <AnimeTitle title={item.title} className={`text-base mb-0 ${theme.text}`} theme={theme} />
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${item.percent === 100 ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}`}>{item.time}</span>
+                            </div>
+                        </div>
+                        {onRemove && (
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); onRemove(item); }} 
+                                className={`${theme.subtext} hover:text-red-400 transition-colors p-1 -mr-2 -mt-2`}
+                                title="Remove from history"
+                            >
+                                <X size={18} />
+                            </button>
+                        )}
+                    </div>
+                    <div className="flex justify-between items-end">
+                        <div className={`flex items-center gap-3 text-xs ${theme.subtext}`}>
+                            <span>{item.date}</span>
+                        </div>
+                        <div className="w-1/3 h-1 bg-slate-800 rounded-full overflow-hidden">
+                            <div className="h-full bg-fuchsia-600" style={{ width: `${item.percent}%` }}></div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const BrowseView = ({ onNavigate, onToggle, checkList, theme }) => (
+            <div className="pt-24 px-6 max-w-7xl mx-auto animate-in">
+                <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+                    <h1 className={`text-3xl font-bold ${theme.text}`}>Browse Anime</h1>
+                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                        <FilterChip label="Action" active theme={theme} /><FilterChip label="Romance" theme={theme} /><FilterChip label="Isekai" theme={theme} /><FilterChip label="Sci-Fi" theme={theme} /><FilterChip label="Fantasy" theme={theme} />
+                    </div>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                    {[...trendingAnime, ...recommendedAnime, ...simulcastAnime, ...hianimeExclusive].map((anime, idx) => (
+                        <AnimeCard key={idx} item={anime} title={anime.title} genre={anime.genre} image={anime.image} rating={anime.rating} onToggle={onToggle} isAdded={checkList(anime)} theme={theme} exclusive={anime.exclusive} />
+                    ))}
+                </div>
+            </div>
+        );
+
+        const ProfileView = ({ user, onUpdate, onNavigate, onReset, theme, onThemeChange }) => {
+            const [isEditing, setIsEditing] = useState(false);
+            const [formData, setFormData] = useState({ ...user });
+
+            const handleSave = () => {
+                onUpdate(formData);
+                setIsEditing(false);
+            };
+
+            const handleCancel = () => {
+                setFormData({ ...user });
+                setIsEditing(false);
+            };
+
+            const randomizeAvatar = () => {
+                const randomSeed = Math.random().toString(36).substring(7);
+                setFormData({ 
+                    ...formData, 
+                    avatar: `https://api.dicebear.com/7.x/adventurer/svg?seed=${randomSeed}&backgroundColor=b6e3f4` 
+                });
+            };
+
+            return (
+            <div className="pt-24 px-6 md:px-12 max-w-6xl mx-auto animate-in">
+                <h1 className={`text-3xl font-bold ${theme.text} mb-8`}>Account Settings</h1>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-1 space-y-6">
+                        <div className={`p-6 rounded-2xl ${theme.card} border ${theme.border} text-center relative overflow-hidden`}>
+                            <div className="relative">
+                                <div className="w-24 h-24 mx-auto rounded-2xl p-1 bg-[#0f0f12] mb-4 relative group">
+                                    <img src={formData.avatar} className="w-full h-full rounded-xl object-cover" alt="avatar" />
+                                    {isEditing && (
+                                        <button 
+                                            onClick={randomizeAvatar}
+                                            className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-xl cursor-pointer"
+                                        >
+                                            <RefreshCw size={24} className="text-white" />
+                                        </button>
+                                    )}
+                                </div>
+                                
+                                {isEditing ? (
+                                    <div className="space-y-3 mb-4">
+                                        <input 
+                                            type="text" 
+                                            value={formData.name} 
+                                            onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                            className={`w-full ${theme.input} border rounded px-3 py-2 text-center ${theme.text} font-bold text-lg focus:border-fuchsia-500 focus:outline-none`}
+                                            placeholder="Your Name"
+                                        />
+                                        <input 
+                                            type="text" 
+                                            value={formData.handle} 
+                                            onChange={(e) => setFormData({...formData, handle: e.target.value})}
+                                            className={`w-full ${theme.input} border rounded px-3 py-1.5 text-center ${theme.subtext} text-sm focus:border-fuchsia-500 focus:outline-none`}
+                                            placeholder="@handle"
+                                        />
+                                    </div>
+                                ) : (
+                                    <>
+                                        <h2 className={`text-2xl font-bold ${theme.text}`}>{user.name}</h2>
+                                        <p className={`${theme.subtext} text-sm mb-4`}>{user.handle}</p>
+                                    </>
+                                )}
+
+                                <div className="inline-flex items-center px-3 py-1 rounded-full border border-fuchsia-500/30 bg-fuchsia-500/10 text-fuchsia-400 text-xs font-bold uppercase tracking-wider mb-6">{user.plan}</div>
+                                
+                                {isEditing ? (
+                                    <div className="flex gap-2">
+                                        <button onClick={handleSave} className="flex-1 flex items-center justify-center gap-2 py-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white rounded-lg text-sm font-bold transition-colors">
+                                            <Save size={16} /> Save
+                                        </button>
+                                        <button onClick={handleCancel} className={`flex-1 flex items-center justify-center gap-2 py-2 border ${theme.border} ${theme.subtext} hover:bg-white/5 rounded-lg text-sm font-bold transition-colors`}>
+                                            <X size={16} /> Cancel
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button onClick={() => setIsEditing(true)} className={`w-full flex items-center justify-center gap-2 py-2 border ${theme.border} ${theme.subtext} hover:bg-white/5 rounded-lg text-sm font-bold transition-colors mb-4`}>
+                                        <Edit2 size={16} /> Edit Profile
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                        <div className={`${theme.card} rounded-xl p-2 border ${theme.border}`}>
+                            <ProfileLink icon={<History size={18} />} label="Watch History" onClick={() => onNavigate('watched')} theme={theme} />
+                            <ProfileLink icon={<Star size={18} />} label="My Reviews" theme={theme} />
+                            <ProfileLink icon={<CreditCard size={18} />} label="Billing" theme={theme} />
+                            <ProfileLink icon={<RefreshCcw size={18} />} label="Reset Data" onClick={onReset} red theme={theme} />
+                            <ProfileLink icon={<LogOut size={18} />} label="Log Out" red theme={theme} />
+                        </div>
+                    </div>
+                    
+                    {/* Settings Panel */}
+                    <div className="lg:col-span-2 space-y-6">
+                        <div className={`${theme.card} rounded-xl border ${theme.border} overflow-hidden`}>
+                            <div className={`p-4 border-b ${theme.border} bg-white/5`}><h3 className={`font-bold ${theme.text}`}>Appearance</h3></div>
+                            <div className="p-6 grid grid-cols-3 gap-4">
+                                <ThemeOption 
+                                    color="bg-[#0a0a0f]" 
+                                    label="Dark" 
+                                    active={theme.id === 'dark'} 
+                                    onClick={() => onThemeChange('dark')} 
+                                    theme={theme}
+                                />
+                                <ThemeOption 
+                                    color="bg-slate-200" 
+                                    label="Light" 
+                                    active={theme.id === 'light'} 
+                                    onClick={() => onThemeChange('light')} 
+                                    theme={theme}
+                                />
+                                <ThemeOption 
+                                    color="bg-[#1a0b2e]" 
+                                    label="Midnight" 
+                                    active={theme.id === 'midnight'} 
+                                    onClick={() => onThemeChange('midnight')} 
+                                    theme={theme}
+                                />
+                            </div>
+                        </div>
+                        
+                        {/* HiAnime Integration Section */}
+                        <div className={`${theme.card} rounded-xl border ${theme.border} overflow-hidden`}>
+                            <div className={`p-4 border-b ${theme.border} bg-white/5 flex items-center justify-between`}>
+                                <h3 className={`font-bold ${theme.text} flex items-center gap-2`}>
+                                    <Zap className="text-purple-400" /> HiAnime Integration
+                                </h3>
+                                <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-bold rounded">Connected</span>
+                            </div>
+                            <div className="p-6">
+                                <p className={`${theme.subtext} mb-4`}>Your account is connected to HiAnime, giving you access to exclusive content and features.</p>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                    <div className="flex items-center gap-3 p-3 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                                        <Database size={20} className="text-purple-400" />
+                                        <div>
+                                            <p className="text-white font-medium">10,000+ Titles</p>
+                                            <p className="text-purple-300 text-sm">Full HiAnime library access</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3 p-3 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                                        <ShieldCheck size={20} className="text-purple-400" />
+                                        <div>
+                                            <p className="text-white font-medium">Ad-Free</p>
+                                            <p className="text-purple-300 text-sm">No interruptions</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex gap-3">
+                                    <a href="https://hianime.to" target="_blank" className="flex-1 flex items-center justify-center gap-2 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-sm font-bold transition-colors">
+                                        <ExternalLink size={16} /> Visit HiAnime
+                                    </a>
+                                    <button className="flex-1 flex items-center justify-center gap-2 py-2 border border-purple-500/30 text-purple-400 hover:bg-purple-500/10 rounded-lg text-sm font-bold transition-colors">
+                                        <RefreshCw size={16} /> Sync Data
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            );
+        };
+
+        const NavLink = ({ label, active, onClick, theme, scrolled }) => (
+            <span onClick={onClick} className={`cursor-pointer transition-colors pb-1 border-b-2 ${active ? `${theme.text} border-fuchsia-500` : `${scrolled ? theme.subtext : 'text-slate-400'} border-transparent hover:${theme.text}`}`}>{label}</span>
+        );
+
+        const ContentRow = ({ title, items, onNavigate, onToggle, checkList, theme, showExclusiveBadge = false }) => (
+            <div className="space-y-4">
+                <div className="flex items-center justify-between px-2">
+                    <h2 className={`text-lg md:text-xl font-bold ${theme.text} flex items-center gap-2 border-l-4 border-fuchsia-500 pl-3`}>{title}</h2>
+                    <span className={`text-xs font-bold ${theme.subtext} uppercase hover:text-fuchsia-400 cursor-pointer flex items-center gap-1`}>View All <ChevronRight size={12}/></span>
+                </div>
+                <div className="flex gap-4 overflow-x-auto pb-8 pt-2 px-2 scrollbar-hide snap-x">
+                    {items.map((item, idx) => (
+                        <AnimeCard key={idx} item={item} title={item.title} genre={item.genre} image={item.image} rating={item.rating} onNavigate={onNavigate} onToggle={onToggle} isAdded={checkList(item)} theme={theme} exclusive={showExclusiveBadge ? item.exclusive : false} />
+                    ))}
+                </div>
+            </div>
+        );
+
+        const AnimeCard = ({ title, genre, image, rating, onNavigate, onToggle, isAdded, item, theme, exclusive }) => (
+            <div className={`min-w-[160px] md:min-w-[220px] snap-start group ${onNavigate ? 'cursor-pointer' : 'cursor-default'}`} onClick={() => onNavigate && onNavigate('watch')}>
+                <div className="relative aspect-[2/3] rounded-xl overflow-hidden mb-3 shadow-lg bg-slate-900">
+                    <img src={image} alt={title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
+                    {/* Only show play button overlay if navigation is enabled */}
+                    {onNavigate && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 bg-black/40 backdrop-blur-[2px]">
+                            <div className="w-12 h-12 rounded-full bg-fuchsia-600 flex items-center justify-center shadow-lg scale-0 group-hover:scale-100 transition-transform delay-75"><Play size={20} className="fill-white text-white ml-1" /></div>
+                            {onToggle && (
+                                <button onClick={(e) => { e.stopPropagation(); onToggle(item); }} className={`mt-3 px-3 py-1 text-xs font-bold rounded-full scale-0 group-hover:scale-100 transition-transform delay-100 flex items-center gap-1 ${isAdded ? 'bg-white text-black' : 'bg-white text-black'}`}>
+                                    {isAdded ? <Check size={12} /> : <Plus size={12} />} {isAdded ? 'Added' : 'Add to List'}
+                                </button>
+                            )}
+                        </div>
+                    )}
+                    <div className="absolute top-2 left-2 px-2 py-1 bg-black/60 backdrop-blur rounded text-[10px] font-bold text-white flex items-center gap-1"><Star size={10} className="fill-yellow-400 text-yellow-400" /> {rating}</div>
+                    {exclusive && (
+                        <div className="absolute top-2 right-2 px-2 py-1 bg-purple-600 rounded text-[10px] font-bold text-white flex items-center gap-1">
+                            <Zap size={10} /> EXCLUSIVE
+                        </div>
+                    )}
+                </div>
+                <AnimeTitle title={title} className={`text-sm font-bold ${theme.text} mt-2`} theme={theme} />
+                <p className={`${theme.subtext} text-xs mt-1`}>{genre}</p>
+            </div>
+        );
+
+        const SocialIcon = ({ icon }) => (<div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:bg-fuchsia-600 hover:text-white transition-all cursor-pointer">{icon}</div>);
+        const ProfileLink = ({ icon, label, red, onClick, theme }) => (<div onClick={onClick} className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-white/5 transition-colors ${red ? 'text-red-400 hover:text-red-300' : `${theme.subtext} hover:${theme.text}`}`}>{icon}<span className="text-sm font-medium">{label}</span><ChevronRight size={14} className="ml-auto opacity-50" /></div>);
+        const SettingRow = ({ icon, title, value }) => (<div className="p-4 flex items-center justify-between hover:bg-white/5 transition-colors cursor-pointer group"><div className="flex items-center gap-4"><div className="text-slate-400 group-hover:text-white transition-colors">{icon}</div><span className="text-sm font-medium text-slate-200">{title}</span></div><div className="flex items-center gap-2"><span className="text-xs text-slate-500">{value}</span><ChevronRight size={14} className="text-slate-600" /></div></div>);
+        const ThemeOption = ({ color, label, active, onClick, theme }) => (<div onClick={onClick} className={`flex-1 p-3 rounded-lg border cursor-pointer transition-all ${active ? 'border-fuchsia-500 bg-fuchsia-500/10' : `${theme.border} hover:border-fuchsia-500/50`}`}><div className={`w-full h-12 rounded mb-2 ${color} border ${theme.border} shadow-inner`}></div><div className={`text-center text-xs font-bold ${theme.subtext}`}>{label}</div></div>);
+        const FilterChip = ({ label, active, theme }) => (<button className={`whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-bold transition-all ${active ? 'bg-white text-black' : `bg-white/5 ${theme.subtext} hover:bg-white/10 border ${theme.border}`}`}>{label}</button>);
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<AniStream />);
+    </script>
+</body>
+</html>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -1133,3 +2403,4 @@
     </script>
 </body>
 </html>
+
