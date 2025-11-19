@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AniStream</title>
     
     <!-- Google Fonts -->
@@ -52,7 +52,7 @@
             Share2, Volume2, Maximize, SkipForward, CreditCard, Shield, Globe, 
             Palette, History, BookOpen, Newspaper, Flame, Check, X, Trash2, Menu,
             Edit2, Save, Camera, RefreshCw, AlertCircle, RefreshCcw, ExternalLink,
-            Users, Zap, ShieldCheck, Database
+            Users, Zap, ShieldCheck, Database, Download 
         } from 'https://esm.sh/lucide-react@0.300.0';
 
         // Helper function to generate an external URL pointing to HiAnime search
@@ -327,7 +327,7 @@
 
             // RESET FUNCTION
             const resetAppData = () => {
-                // IMPORTANT: Replacing alert/confirm with console message as per instructions, but for real app, a custom modal UI should be used.
+                // NOTE: Using window.confirm() for demonstration as we cannot use custom modals here, but this should be a custom modal in a final app.
                 if(window.confirm("Are you sure you want to reset all app data? This will clear your watchlist and history.")) {
                     localStorage.removeItem('aniStream_watchlist');
                     localStorage.removeItem('aniStream_history');
@@ -437,6 +437,21 @@
                 }
             };
 
+            // Function to handle the PWA/Simulated Download
+            const handleDownloadApp = (e) => {
+                e.preventDefault();
+                // We use window.confirm() to simulate an installation/download prompt
+                if (window.confirm("Would you like to install AniStream? This will add the app shortcut to your device home screen.")) {
+                    // Simulate successful download/installation prompt acceptance
+                    console.log("App installation simulated successfully.");
+                } else {
+                    // Simulate rejection
+                    console.log("App installation rejected by user.");
+                }
+                setMobileMenuOpen(false);
+            };
+
+
             return (
                 <div className={`min-h-screen ${theme.bg} ${theme.text} font-sans selection:bg-fuchsia-500/30 overflow-x-hidden relative transition-colors duration-300`}>
                     
@@ -465,6 +480,11 @@
                             </div>
 
                             <div className="flex items-center gap-3 md:gap-5">
+                                {/* NEW DESKTOP DOWNLOAD BUTTON */}
+                                <a href="#app-download" onClick={handleDownloadApp} className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-fuchsia-600/20 text-fuchsia-400 rounded-full text-sm font-bold transition-colors hover:bg-fuchsia-600 hover:text-white">
+                                    <Download size={16} /> Get App
+                                </a>
+
                                 <div className={`hidden md:flex items-center ${theme.input} rounded-full px-3 py-1.5 focus-within:border-fuchsia-500/50 focus-within:ring-1 focus-within:ring-fuchsia-500/20 transition-all group`}>
                                     <Search size={16} className={`${theme.subtext} group-focus-within:text-fuchsia-400`} />
                                     <input 
@@ -510,6 +530,10 @@
                                 <span onClick={() => handleNavClick('watchlist')} className={activeTab === 'watchlist' ? 'text-fuchsia-400' : ''}>Watchlist</span>
                                 <span onClick={() => handleNavClick('watched')} className={activeTab === 'watched' ? 'text-fuchsia-400' : ''}>History</span>
                                 <span onClick={() => handleNavClick('profile')} className={activeTab === 'profile' ? 'text-fuchsia-400' : ''}>Profile Settings</span>
+                                {/* MOBILE DOWNLOAD BUTTON */}
+                                <a href="#" onClick={handleDownloadApp} className="mt-6 px-4 py-3 bg-fuchsia-600 text-white rounded-lg text-lg font-bold flex items-center justify-center gap-3 hover:bg-fuchsia-500 transition-colors shadow-lg shadow-fuchsia-500/30">
+                                    <Download size={20} /> Download AniStream App
+                                </a>
                             </div>
                         </div>
                     )}
@@ -530,7 +554,7 @@
                     )}
 
                     {/* Footer */}
-                    <footer className={`bg-[#050507] border-t ${theme.border} pt-16 pb-8 mt-20`}>
+                    <footer id="app-download" className={`bg-[#050507] border-t ${theme.border} pt-16 pb-8 mt-20`}>
                         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
                             <div>
                                 <h3 className="text-lg font-black italic text-white mb-4">Ani<span className="text-cyan-400">Stream</span></h3>
@@ -553,12 +577,23 @@
                                     <li className="hover:text-fuchsia-400 cursor-pointer">Gift Cards</li>
                                 </ul>
                             </div>
+                            
+                            {/* Download App Section */}
                             <div>
-                                <h4 className="font-bold text-white mb-4">Connect</h4>
-                                <div className="flex gap-4">
-                                    <SocialIcon icon={<Globe size={18} />} />
-                                    <SocialIcon icon={<Share2 size={18} />} />
-                                    <SocialIcon icon={<MessageSquare size={18} />} />
+                                <h4 className="font-bold text-white mb-4 flex items-center gap-2"><Download size={18} className="text-fuchsia-400" /> Download the App</h4>
+                                <div className="space-y-3">
+                                    <DownloadStoreIcon 
+                                        icon={<MonitorPlay size={18} />} 
+                                        label="Google Play" 
+                                        url="#" 
+                                        onClick={handleDownloadApp}
+                                    />
+                                    <DownloadStoreIcon 
+                                        icon={<Tv size={18} />} 
+                                        label="App Store" 
+                                        url="#" 
+                                        onClick={handleDownloadApp}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -572,6 +607,17 @@
 
         // --- SUB-COMPONENTS ---
         
+        // Helper component for store links in the footer
+        const DownloadStoreIcon = ({ icon, label, url, onClick }) => (
+            <a href={url} onClick={onClick} className="flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-white/5 transition-colors text-slate-400 hover:text-white">
+                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">{icon}</div>
+                <div>
+                    <span className="text-xs font-medium text-slate-200 block">{label}</span>
+                    <span className="text-sm font-bold">Download Now</span>
+                </div>
+            </a>
+        );
+
         const AnimeCardSkeleton = ({ theme }) => (
             <div className={`min-w-[160px] md:min-w-[220px] snap-start bg-white/5 rounded-xl animate-pulse p-2`}>
                 <div className="relative aspect-[2/3] rounded-xl overflow-hidden mb-3 bg-white/10"></div>
