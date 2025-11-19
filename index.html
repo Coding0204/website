@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AniStream</title>
     
     <!-- Google Fonts -->
@@ -21,6 +21,15 @@
         .animate-in { animation: fadeIn 0.5s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
+        /* Toast Animation */
+        .toast-slide-in {
+            animation: slideIn 0.4s ease-out forwards;
+        }
+        @keyframes slideIn {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
         /* Glassmorphism utilities */
         .glass {
             background: rgba(255, 255, 255, 0.05);
@@ -52,7 +61,7 @@
             Share2, Volume2, Maximize, SkipForward, CreditCard, Shield, Globe, 
             Palette, History, BookOpen, Newspaper, Flame, Check, X, Trash2, Menu,
             Edit2, Save, Camera, RefreshCw, AlertCircle, RefreshCcw, ExternalLink,
-            Users, Zap, ShieldCheck, Database
+            Users, Zap, ShieldCheck, Database, Download 
         } from 'https://esm.sh/lucide-react@0.300.0';
 
         // Helper function to generate an external URL pointing to HiAnime search
@@ -260,6 +269,39 @@
                 </div>
             );
         };
+        
+        // --- DOWNLOAD TOAST COMPONENT ---
+        const DownloadToast = ({ message, show, onClose }) => {
+            // Note: This component is now managed via plain DOM manipulation in handleDownloadApp
+            const toastId = 'download-toast';
+
+            // Function to manually close the toast (called by button click)
+            const handleCloseClick = () => {
+                const toast = document.getElementById(toastId);
+                if (toast) {
+                    // Use opacity/pointer-events for smooth hiding
+                    toast.style.opacity = '0';
+                    toast.style.pointerEvents = 'none'; 
+                    if (onClose) onClose();
+                }
+            };
+
+            return (
+                <div id={toastId} className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] max-w-sm w-11/12 md:w-full transition-opacity duration-300 opacity-0 pointer-events-none">
+                    <div className="bg-green-600 text-white p-4 rounded-lg shadow-2xl flex items-center justify-between toast-slide-in">
+                        <div className="flex items-center">
+                            <Check size={20} className="mr-2" />
+                            {/* FIX: Added id="toast-message" to allow handleDownloadApp to update the text content */}
+                            <span id="toast-message" className="text-sm font-medium">{message}</span>
+                        </div>
+                        <button onClick={handleCloseClick} className="text-white/80 hover:text-white transition-colors p-1 -mr-2">
+                            <X size={18} />
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
 
         // --- MAIN APP COMPONENT ---
         const AniStream = () => {
@@ -437,6 +479,30 @@
                 }
             };
 
+            // Function to handle the PWA/Simulated Download (FIXED)
+            const handleDownloadApp = (e) => {
+                e.preventDefault();
+                setMobileMenuOpen(false); // Close menu if open
+
+                const toastElement = document.getElementById('download-toast');
+                const toastMessageElement = document.getElementById('toast-message');
+
+                if (toastElement && toastMessageElement) {
+                    toastMessageElement.textContent = "Installing AniStream! Look for the icon on your home screen.";
+                    
+                    // Show the toast smoothly using opacity/pointerEvents
+                    toastElement.style.opacity = '1';
+                    toastElement.style.pointerEvents = 'auto';
+
+                    // Hide toast after 4 seconds (Manual timeout)
+                    setTimeout(() => {
+                        toastElement.style.opacity = '0';
+                        toastElement.style.pointerEvents = 'none';
+                    }, 4000); 
+                }
+            };
+
+
             return (
                 <div className={`min-h-screen ${theme.bg} ${theme.text} font-sans selection:bg-fuchsia-500/30 overflow-x-hidden relative transition-colors duration-300`}>
                     
@@ -465,6 +531,11 @@
                             </div>
 
                             <div className="flex items-center gap-3 md:gap-5">
+                                {/* DESKTOP DOWNLOAD BUTTON */}
+                                <button onClick={handleDownloadApp} className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-fuchsia-600/20 text-fuchsia-400 rounded-full text-sm font-bold transition-colors hover:bg-fuchsia-600 hover:text-white">
+                                    <Download size={16} /> Get App
+                                </button>
+
                                 <div className={`hidden md:flex items-center ${theme.input} rounded-full px-3 py-1.5 focus-within:border-fuchsia-500/50 focus-within:ring-1 focus-within:ring-fuchsia-500/20 transition-all group`}>
                                     <Search size={16} className={`${theme.subtext} group-focus-within:text-fuchsia-400`} />
                                     <input 
@@ -510,6 +581,10 @@
                                 <span onClick={() => handleNavClick('watchlist')} className={activeTab === 'watchlist' ? 'text-fuchsia-400' : ''}>Watchlist</span>
                                 <span onClick={() => handleNavClick('watched')} className={activeTab === 'watched' ? 'text-fuchsia-400' : ''}>History</span>
                                 <span onClick={() => handleNavClick('profile')} className={activeTab === 'profile' ? 'text-fuchsia-400' : ''}>Profile Settings</span>
+                                {/* MOBILE DOWNLOAD BUTTON */}
+                                <button onClick={handleDownloadApp} className="mt-6 px-4 py-3 bg-fuchsia-600 text-white rounded-lg text-lg font-bold flex items-center justify-center gap-3 hover:bg-fuchsia-500 transition-colors shadow-lg shadow-fuchsia-500/30">
+                                    <Download size={20} /> Download AniStream App
+                                </button>
                             </div>
                         </div>
                     )}
@@ -529,32 +604,42 @@
                         />
                     )}
 
-                    {/* Footer */}
-                    <footer className={`bg-[#050507] border-t ${theme.border} pt-16 pb-8 mt-20`}>
+                    {/* Download Toast Notification (Now managed via DOM) */}
+                    <DownloadToast 
+                        message="" // Message set dynamically via JS
+                        show={false} // State not used, but kept for component signature
+                        onClose={() => {}} 
+                    />
+
+                    {/* Footer - START OF ENHANCED FOOTER */}
+                    <footer className={`bg-[#050507] border-t ${theme.border} pt-16 pb-8 mt-20 relative overflow-hidden`}>
+                        {/* Subtle background element for dynamic feel */}
+                        <div className="absolute top-0 w-full h-px bg-gradient-to-r from-transparent via-fuchsia-600/30 to-transparent"></div>
+
                         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
                             <div>
-                                <h3 className="text-lg font-black italic text-white mb-4">Ani<span className="text-cyan-400">Stream</span></h3>
+                                <h3 className="text-lg font-black italic text-white mb-4 transition-colors duration-300">Ani<span className="text-cyan-400">Stream</span></h3>
                                 <p className="text-slate-500 text-sm leading-relaxed mb-3">
                                     The world's largest anime collection. Stream simulcasts straight from Japan in 4K.
                                 </p>
                             </div>
                             <div>
-                                <h4 className="font-bold text-white mb-4">Navigation</h4>
+                                <h4 className="font-bold text-white mb-4 uppercase tracking-wider">Navigation</h4>
                                 <ul className="space-y-2 text-sm text-slate-400">
-                                    <li className="hover:text-fuchsia-400 cursor-pointer" onClick={() => handleNavClick('browse')}>Browse Popular</li>
-                                    <li className="hover:text-fuchsia-400 cursor-pointer" onClick={() => handleNavClick('watched')}>Watch History</li>
+                                    <li className="hover:text-fuchsia-400 transition-colors cursor-pointer" onClick={() => handleNavClick('browse')}>Browse Popular</li>
+                                    <li className="hover:text-fuchsia-400 transition-colors cursor-pointer" onClick={() => handleNavClick('watched')}>Watch History</li>
                                 </ul>
                             </div>
                             <div>
-                                <h4 className="font-bold text-white mb-4">Account</h4>
+                                <h4 className="font-bold text-white mb-4 uppercase tracking-wider">Account</h4>
                                 <ul className="space-y-2 text-sm text-slate-400">
-                                    <li className="hover:text-fuchsia-400 cursor-pointer" onClick={() => handleNavClick('watchlist')}>My Watchlist</li>
-                                    <li className="hover:text-fuchsia-400 cursor-pointer">Redeem Code</li>
-                                    <li className="hover:text-fuchsia-400 cursor-pointer">Gift Cards</li>
+                                    <li className="hover:text-fuchsia-400 transition-colors cursor-pointer" onClick={() => handleNavClick('watchlist')}>My Watchlist</li>
+                                    <li className="hover:text-fuchsia-400 transition-colors cursor-pointer">Redeem Code</li>
+                                    <li className="hover:text-fuchsia-400 transition-colors cursor-pointer">Gift Cards</li>
                                 </ul>
                             </div>
                             <div>
-                                <h4 className="font-bold text-white mb-4">Connect</h4>
+                                <h4 className="font-bold text-white mb-4 uppercase tracking-wider">Connect</h4>
                                 <div className="flex gap-4">
                                     <SocialIcon icon={<Globe size={18} />} />
                                     <SocialIcon icon={<Share2 size={18} />} />
@@ -1445,7 +1530,7 @@
             </div>
         );
 
-        const SocialIcon = ({ icon }) => (<div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:bg-fuchsia-600 hover:text-white transition-all cursor-pointer">{icon}</div>);
+        const SocialIcon = ({ icon }) => (<div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:bg-fuchsia-600 hover:text-white transition-all cursor-pointer hover:shadow-[0_0_15px_rgba(217,70,239,0.5)]">{icon}</div>);
         const ProfileLink = ({ icon, label, red, onClick, theme }) => (<div onClick={onClick} className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-white/5 transition-colors ${red ? 'text-red-400 hover:text-red-300' : `${theme.subtext} hover:${theme.text}`}`}>{icon}<span className="text-sm font-medium">{label}</span><ChevronRight size={14} className="ml-auto opacity-50" /></div>);
         const SettingRow = ({ title, value, theme }) => (<div className="p-3 flex items-center justify-between hover:bg-white/5 transition-colors cursor-pointer group"><div className="flex items-center gap-4"><Settings size={18} className="text-slate-400 group-hover:text-white transition-colors" /><span className="text-sm font-medium text-slate-200">{title}</span></div><div className="flex items-center gap-2"><span className="text-xs text-slate-500">{value}</span><ChevronRight size={14} className="text-slate-600" /></div></div>);
         const ThemeOption = ({ color, label, active, onClick, theme }) => (<div onClick={onClick} className={`flex-1 p-3 rounded-lg border cursor-pointer transition-all ${active ? 'border-fuchsia-500 bg-fuchsia-500/10' : `${theme.border} hover:border-fuchsia-500/50`}`}><div className={`w-full h-12 rounded mb-2 ${color} border ${theme.border} shadow-inner`}></div><div className={`text-center text-xs font-bold ${theme.subtext}`}>{label}</div></div>);
